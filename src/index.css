@@ -1,0 +1,106 @@
+/* =======================================================
+   1️⃣ Google Fonts (ONLY ONCE – Variable Fonts)
+======================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Alan+Sans:wght@300..900&family=BBH+Bartle&family=BBH+Bogle&family=Moderustic:wght@300..800&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* =======================================================
+   2️⃣ Tailwind CSS Import
+======================================================= */
+@import "tailwindcss";
+
+/* =======================================================
+   3️⃣ Default Global Styles (Base Layer)
+======================================================= */
+body {
+  margin: 0;
+  padding: 0;
+  
+  font-family: system-ui, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  /* Paragraphs ke liye Roboto */
+  p {
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+  }
+
+  /* 🔥 YAHAN CHANGE KIYA: Headings ko @layer base ke andar rakha */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Nunito Sans", sans-serif;
+    font-style: normal;
+    font-optical-sizing: auto;
+    font-variation-settings:
+      "wdth" 100,
+      "YTLC" 500;
+  }
+}
+
+/* =======================================================
+   4️⃣ SELECTED AREA FONTS (UTILITY CLASSES)
+======================================================= */
+
+/* 🟢 Nunito Sans – UI / Body (Variable) */
+.font-nunito-custom {
+  font-family: "Nunito Sans", sans-serif;
+  font-style: normal;
+  font-optical-sizing: auto;
+  font-variation-settings:
+    "wdth" 100,
+    "YTLC" 500;
+}
+
+/* 🔵 Alan Sans – Headings */
+.font-alan {
+  font-family: "Alan Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* 🟣 Moderustic – Creative / Highlight */
+.font-moderustic {
+  font-family: "Moderustic", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+}
+
+/* ⚫ Roboto – Numbers / Forms */
+.font-roboto {
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}
+
+/* =======================================================
+   5️⃣ Tailwind Utility Layer (Optional – Pro Way)
+======================================================= */
+@layer utilities {
+  .font-nunito-advanced {
+    font-family: "Nunito Sans", sans-serif;
+    font-variation-settings:
+      "wdth" 100,
+      "YTLC" 500;
+  }
+}
+
+
+
+/* =======================================================
+   6️⃣ Scrollbar Hide Utility
+======================================================= */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
