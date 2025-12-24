@@ -75,14 +75,19 @@ const AssetSelector = () => {
   );
 
   const displayList = activeCategory === 'crypto' ? cryptoAssets : filteredStatic;
+const handleSelect = (asset) => {
+  // Agar crypto hai toh symbol bhejo (BTC), agar currency hai toh name (GBP/USD)
+  const finalAssetName = asset.category === 'crypto' 
+    ? asset.name.split('/')[0] 
+    : asset.name;
 
-  const handleSelect = (asset) => {
-    dispatch(setAsset(asset.name));
-    dispatch(setPayoutPercentage(asset.payout));
-    setActiveIcon(asset.icon);
-    setIsOpen(false);
-  };
-
+  dispatch(setAsset(finalAssetName));
+  dispatch(setPayoutPercentage(asset.payout));
+  
+  // Icon update logic
+  setActiveIcon(asset.icon);
+  setIsOpen(false);
+};
   return (
     <div className="relative">
 {/* Trigger button style */}

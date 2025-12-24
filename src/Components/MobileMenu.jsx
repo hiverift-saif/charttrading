@@ -29,37 +29,35 @@ const MobileMenu = ({ isOpen, onClose }) => {
             <div className="h-0.5 w-16 bg-blue-500"></div>
           </div>
 
-      <div className="flex gap-3 mb-8">
-  {/* Registration Button */}
+<div className="flex gap-2 sm:gap-3 mb-8">
   <button
-    onClick={() => handleBtnClick('/signup')}
+    onClick={() => handleBtnClick("/signup")}
     className="
-      flex items-center gap-2
+      flex items-center gap-1.5 sm:gap-2
       bg-blue-600 hover:bg-blue-700
       text-white font-semibold
-      py-2.5 px-6 rounded-lg
-      transition-colors
-      text-sm font-nunito-custom
+      py-1.5 px-3 sm:py-2.5 sm:px-6
+      rounded-md sm:rounded-lg
+      text-xs sm:text-sm md:text-base
     "
   >
-    <UserPlus size={18} />
-    <span>Registration</span>
+    <UserPlus size={14} className="sm:size-[18px]" />
+    Create Account
   </button>
 
-  {/* Login Button */}
   <button
-    onClick={() => handleBtnClick('/Login')}
+    onClick={() => handleBtnClick("/login")}
     className="
-      flex items-center gap-2
+      flex items-center gap-1.5 sm:gap-2
       bg-orange-600 hover:bg-orange-700
       text-white font-semibold
-      py-2.5 px-6 rounded-lg
-      transition-colors
-      text-sm font-nunito-custom
+      py-1.5 px-3 sm:py-2.5 sm:px-6
+      rounded-md sm:rounded-lg
+      text-xs sm:text-sm md:text-base
     "
   >
-    <LogIn size={18} />
-    <span>Log In</span>
+    <LogIn size={14} className="sm:size-[18px]" />
+    Sign In
   </button>
 </div>
 

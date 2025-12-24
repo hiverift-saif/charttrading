@@ -10,6 +10,7 @@ const initialState = {
   timeframe: "1",
   openTrades: [],
   tradeHistory: [],
+  currentAsset: "BTC/USD",
   currentPrice: 0,
 };
 
@@ -35,10 +36,11 @@ export const tradingSlice = createSlice({
     setTimeframe: (state, action) => {
       state.timeframe = action.payload;
     },
-    addOpenTrade: (state, action) => {
-      state.openTrades.push(action.payload);
-      state.balance -= state.tradeAmount;
-    },
+  addOpenTrade: (state, action) => {
+  state.openTrades.push(action.payload);
+  // state.tradeAmount ki jagah payload ka actual amount minus karein
+  state.balance -= action.payload.amount; 
+},
     updatePrice: (state, action) => {
       state.currentPrice = action.payload;
     },

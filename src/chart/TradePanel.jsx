@@ -1,20 +1,44 @@
 // src/chart/TradePanel.jsx
 
 import React, { useState } from 'react';
-import { ChevronDown, Info, Minus, Plus, Send, History, X, Delete } from 'lucide-react';
-import { useSelector } from 'react-redux';
+import { ChevronDown, Info, Minus, Plus, Send, History, X, Delete, Clock } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import { addOpenTrade } from '../redux/tradingSlice'; // Check path
 
 const TradePanel = () => {
+  const dispatch = useDispatch();
   const [amount, setAmount] = useState(10);
   const [time, setTime] = useState("00:01:00");
   const [showKeypad, setShowKeypad] = useState(false);
-  const payout = 95;
+  
+  // Redux se data nikalna
+  const { currentAsset, currentPrice, payoutPercentage, balance, openTrades } = useSelector(state => state.trading);
 
-  const { currentAsset = "XRPUSDT", currentPrice = 0 } = useSelector(state => state.trading);
-  const displayPrice = currentPrice > 0 ? currentPrice.toFixed(8) : 'Loading...';
-
-  const profit = (amount * (payout / 100)).toFixed(2);
+  const profit = (amount * (payoutPercentage / 100)).toFixed(2);
   const totalReturn = (Number(amount) + Number(profit)).toFixed(2);
+
+  // Logic: Trade lagane ke liye
+// Logic: Trade lagane ke liye
+  const handleTrade = (direction) => {
+    if (balance < amount) {
+      alert("Insufficient Balance!");
+      return;
+    }
+
+    const tradeData = {
+      id: Date.now(),
+      asset: currentAsset,
+      entryPrice: currentPrice,
+      amount: Number(amount),
+      direction: direction, // 'UP' or 'DOWN'
+      expiryTime: Date.now() + 60000, // 1 minute ka timer
+      payout: payoutPercentage,
+      status: 'OPEN'
+    };
+
+    dispatch(addOpenTrade(tradeData));
+    setShowKeypad(false); // Trade lagte hi keypad band ho jaye
+  };
 
   const handleKeyClick = (val) => {
     if (val === 'del') {
@@ -27,14 +51,14 @@ const TradePanel = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col p-3 gap-3 overflow-y-auto no-scrollbar">
+    <div className="flex-1 flex flex-col p-3 gap-3 overflow-y-auto no-scrollbar relative h-full">
       {/* Asset Header */}
       <div className="flex items-center justify-between bg-[#1e1c1b] p-3 rounded-lg border border-gray-800 cursor-pointer hover:bg-[#252322] transition active:scale-95">
         <div className="flex items-center gap-2">
           <img src="https://eqxadmin.com/public/images/xrp.svg" alt="XRP" className="w-6 h-6" />
           <div>
-            <h5 className="text-sm font-bold text-white leading-none">{currentAsset.replace('USDT', ' - OTC')}</h5>
-            <small className="text-[10px] text-gray-500 uppercase">FT • <span className="text-green-500">+{payout}%</span></small>
+            <h5 className="text-sm font-bold text-white leading-none uppercase">{currentAsset.replace('USDT', '')}</h5>
+            <small className="text-[10px] text-gray-500 uppercase">FT • <span className="text-green-500">+{payoutPercentage}%</span></small>
           </div>
         </div>
         <ChevronDown size={14} className="text-gray-500" />
@@ -81,7 +105,7 @@ const TradePanel = () => {
           <span className="text-white">${totalReturn}</span>
         </div>
         <div className="text-center">
-          <span className="text-2xl font-black text-green-500">+{payout}%</span>
+          <span className="text-2xl font-black text-green-500">+{payoutPercentage}%</span>
         </div>
         <div className="flex justify-between text-[11px] font-bold">
           <span className="text-gray-400">Profit:</span>
@@ -89,16 +113,35 @@ const TradePanel = () => {
         </div>
       </div>
 
-      {/* Buy/Sell Buttons */}
+      {/* Buy/Sell Buttons - COLORS UPDATED */}
       <div className="flex flex-col gap-3 mt-2">
-        <button className="w-full bg-white text-black py-4 rounded-xl font-black uppercase text-lg flex items-center justify-center gap-2 hover:bg-gray-200 transition active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.15)]">
-          <Send size={20} className="-rotate-45" />
-          <span>Buy</span>
-        </button>
-        <button className="w-full bg-white text-black py-4 rounded-xl font-black uppercase text-lg flex items-center justify-center gap-2 hover:bg-gray-200 transition active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.15)]">
-          <History size={20} className="scale-x-[-1]" />
-          <span>Sell</span>
-        </button>
+     <button 
+  onClick={() => handleTrade('UP')} // 👈 Ye line add karo
+  className="w-full bg-[#00c853] text-white py-4 rounded-xl font-black uppercase text-lg flex items-center justify-center gap-2 hover:bg-[#00e676] transition active:scale-95 shadow-[0_4px_20px_rgba(0,200,83,0.2)]"
+>
+  <Send size={20} className="-rotate-45" />
+  <span>Buy</span>
+</button>
+    <button 
+  onClick={() => handleTrade('DOWN')} // 👈 Ye line add karo
+  className="w-full bg-[#ff3d00] text-white py-4 rounded-xl font-black uppercase text-lg flex items-center justify-center gap-2 hover:bg-[#ff6e40] transition active:scale-95 shadow-[0_4px_20px_rgba(255,61,0,0.2)]"
+>
+  <History size={20} className="scale-x-[-1]" />
+  <span>Sell</span>
+</button>
+      </div>
+
+      {/* Active Trades Mini-List (Optional but helpful) */}
+      <div className="mt-2 overflow-y-auto max-h-[100px] no-scrollbar">
+          {openTrades.length > 0 && <span className="text-[10px] text-gray-500 font-bold block mb-2 uppercase tracking-tighter">Open Trades</span>}
+          {openTrades.map(trade => (
+              <div key={trade.id} className="flex justify-between items-center bg-white/5 p-2 rounded mb-1 border-l-2 border-blue-500">
+                  <span className="text-[10px] text-gray-300 uppercase font-mono">{trade.asset}</span>
+                  <span className={`text-[10px] font-bold ${trade.direction === 'UP' ? 'text-green-500' : 'text-red-500'}`}>
+                    {trade.direction}
+                  </span>
+              </div>
+          ))}
       </div>
 
       {/* Keypad Overlay */}

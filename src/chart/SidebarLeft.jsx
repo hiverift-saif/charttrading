@@ -1,33 +1,37 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { 
   LayoutDashboard, Wallet, User, BarChart2, Headphones, 
-  Settings, LogOut, Monitor, Send, ChevronLeft, CreditCard, 
-  History, Gift, HelpCircle, MessageSquare, FileText
+  ChevronLeft, CreditCard, History, Gift, Trophy, Monitor, X,
+  MessageSquare, FileText, HelpCircle
 } from 'lucide-react';
 
-const SidebarLeft = () => {
-  // State to track konsa menu open hai (e.g., 'trading', 'finance')
+const SidebarLeft = ({ setActiveTab, activeTab }) => {
+  // States for Sidebar and Tabs
   const [activeMenu, setActiveMenu] = useState(null);
+  const [tournamentTab, setTournamentTab] = useState('all'); // 'all' or 'stats'
 
-  // Toggle function: Agar same click kiya to band karo, naya kiya to kholo
+  // Functions to handle clicks
   const handleMenuClick = (menuName) => {
-    if (activeMenu === menuName) {
-      setActiveMenu(null); // Close if already open
-    } else {
-      setActiveMenu(menuName); // Open new
-    }
+    setActiveMenu(activeMenu === menuName ? null : menuName);
+  };
+
+  const handleSubItemClick = (tabName) => {
+    setActiveTab(tabName);
+    setActiveMenu(null); // Drawer close on selection
   };
 
   return (
     <div className="flex h-full z-50">
       
-      {/* ==================== 1. MAIN ICON BAR (Always Visible) ==================== */}
+      {/* ==================== 1. MAIN ICON BAR (Fixed Left) ==================== */}
       <aside className="w-20 flex flex-col items-center py-6 border-r border-gray-800 bg-[#161413] z-50">
         
-        {/* User / Profile Icon (Top) */}
+        {/* Profile Avatar Icon */}
         <div className="mb-8">
-           <button onClick={() => handleMenuClick('profile')} className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center border-2 border-transparent hover:border-green-500 transition overflow-hidden">
+           <button 
+             onClick={() => handleMenuClick('profile')} 
+             className={`w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center border-2 transition overflow-hidden ${activeMenu === 'profile' ? 'border-green-500' : 'border-transparent'}`}
+           >
               <User size={20} className="text-white"/>
            </button>
         </div>
@@ -37,157 +41,204 @@ const SidebarLeft = () => {
           <MainIcon 
             icon={<LayoutDashboard size={24} />} 
             label="Trading" 
-            isActive={activeMenu === 'trading'} 
+            isActive={activeMenu === 'trading' || activeTab === 'chart'} 
             onClick={() => handleMenuClick('trading')} 
           />
           <MainIcon 
             icon={<Wallet size={24} />} 
             label="Finance" 
-            isActive={activeMenu === 'finance'} 
+            isActive={activeMenu === 'finance' || ['deposit', 'withdraw', 'history', 'bonus'].includes(activeTab)} 
             onClick={() => handleMenuClick('finance')} 
           />
           <MainIcon 
-            icon={<User size={24} />} 
-            label="Profile" 
-            isActive={activeMenu === 'profile'} 
-            onClick={() => handleMenuClick('profile')} 
+            icon={<Trophy size={24} />} 
+            label="Tournaments" 
+            isActive={activeMenu === 'tournament'} 
+            onClick={() => handleMenuClick('tournament')} 
           />
-          <MainIcon 
-            icon={<BarChart2 size={24} />} 
-            label="Analytics" 
-            to="/analytics" // Direct Link (No Submenu)
-          />
-          <MainIcon 
-            icon={<BarChart2 size={24} className="rotate-90"/>} 
-            label="Market" 
-            isActive={activeMenu === 'market'} 
-            onClick={() => handleMenuClick('market')} 
-          />
-          <MainIcon 
-            icon={<Headphones size={24} />} 
-            label="Support" 
-            isActive={activeMenu === 'support'} 
-            onClick={() => handleMenuClick('support')} 
-          />
+   <MainIcon 
+  icon={<Headphones size={24} />} 
+  label="Support" 
+  isActive={activeMenu === 'support' || activeTab === 'support'} 
+  onClick={() => handleMenuClick('support')} 
+/>
         </nav>
-
-        {/* Bottom Actions */}
-        <div className="mt-auto flex flex-col gap-4 w-full px-2">
-          <MainIcon icon={<Settings size={22} />} label="Settings" to="/setting" />
-          <div className="w-full border-t border-gray-800 my-1"></div>
-          <MainIcon icon={<LogOut size={22} className="text-red-500" />} label="Logout" />
-        </div>
       </aside>
 
-
-      {/* ==================== 2. SUB-MENU DRAWER (Sliding Panel) ==================== */}
-      {/* Ye div tabhi dikhega jab activeMenu null nahi hoga */}
+      {/* ==================== 2. SUB-MENU DRAWER (Sliding Part) ==================== */}
       {activeMenu && (
-        <div className="w-64 bg-[#1b1817] border-r border-gray-800 flex flex-col h-full animate-slide-in">
+        <div className="w-80 bg-[#1b1817] border-r border-gray-800 flex flex-col h-full animate-in slide-in-from-left duration-200">
           
-          {/* Drawer Header (Back Button) */}
-          <div className="h-16 flex items-center px-4 border-b border-gray-800">
-            <button 
-              onClick={() => setActiveMenu(null)} 
-              className="flex items-center text-gray-400 hover:text-white transition gap-2 text-sm font-bold uppercase tracking-wider"
-            >
-              <ChevronLeft size={16} /> Back
-            </button>
-          </div>
-
-          {/* Drawer Content Area */}
-          <div className="p-4 overflow-y-auto flex-1">
-            
-            {/* --- TRADING SUBMENU --- */}
-            {activeMenu === 'trading' && (
-              <div className="flex flex-col gap-2">
-                <SubMenuItem icon={<LayoutDashboard size={18}/>} title="Real Account" desc="Live trading" active />
-                <SubMenuItem icon={<Monitor size={18}/>} title="Demo Account" desc="Practice trading" />
+          {/* --- A. TOURNAMENT DRAWER --- */}
+          {activeMenu === 'tournament' && (
+            <div className="flex flex-col h-full">
+              <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-[#1b1817]">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Trophy size={18} className="text-yellow-500"/> Tournaments
+                </h2>
+                <button onClick={() => setActiveMenu(null)} className="text-gray-500 hover:text-white"><X size={20}/></button>
               </div>
-            )}
 
-            {/* --- FINANCE SUBMENU --- */}
-            {activeMenu === 'finance' && (
-              <div className="flex flex-col gap-2">
-                <SubMenuItem icon={<CreditCard size={18}/>} title="Deposit" desc="Add funds" />
-                <SubMenuItem icon={<Wallet size={18}/>} title="Withdrawal" desc="Get your earnings" />
-                <SubMenuItem icon={<Gift size={18}/>} title="Bonus Codes" desc="Apply promo" />
-                <SubMenuItem icon={<History size={18}/>} title="Transactions" desc="View history" />
+              <div className="mx-4 mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded text-[11px] text-red-400 font-medium text-center">
+                This section is only available for real accounts.
               </div>
-            )}
 
-            {/* --- PROFILE SUBMENU --- */}
-            {activeMenu === 'profile' && (
-              <div className="flex flex-col gap-4">
-                {/* User Info Card */}
-                <div className="bg-[#2a2e39] p-4 rounded-lg text-center mb-2">
-                   <div className="w-16 h-16 bg-gray-600 rounded-full mx-auto mb-2 flex items-center justify-center">
-                     <User size={32} className="text-gray-300"/>
-                   </div>
-                   <h3 className="text-white font-bold">User 50032</h3>
-                   <p className="text-xs text-gray-400">ID: 50032</p>
-                   <p className="text-green-500 font-bold mt-2">$0.00</p>
-                   <button className="mt-3 w-full bg-green-600 hover:bg-green-500 text-white text-xs py-2 rounded font-bold">Deposit</button>
-                </div>
-                <SubMenuItem icon={<User size={18}/>} title="Personal Data" />
-                <SubMenuItem icon={<BarChart2 size={18}/>} title="Trading History" />
+              <div className="flex px-4 mt-4 gap-6 border-b border-gray-800">
+                <button onClick={() => setTournamentTab('all')} className={`pb-2 text-xs font-bold transition-all ${tournamentTab === 'all' ? 'text-white border-b-2 border-green-500' : 'text-gray-500'}`}>All Tournaments</button>
+                <button onClick={() => setTournamentTab('stats')} className={`pb-2 text-xs font-bold transition-all ${tournamentTab === 'stats' ? 'text-white border-b-2 border-green-500' : 'text-gray-500'}`}>Statistics</button>
               </div>
-            )}
 
-             {/* --- SUPPORT SUBMENU --- */}
-             {activeMenu === 'support' && (
-              <div className="flex flex-col gap-2">
-                <SubMenuItem icon={<MessageSquare size={18}/>} title="My Requests" />
-                <SubMenuItem icon={<FileText size={18}/>} title="Create Request" />
-                <SubMenuItem icon={<HelpCircle size={18}/>} title="FAQ" />
-                <div className="mt-4 p-4 bg-[#2a2e39] rounded text-xs text-gray-400 text-center">
-                   Need help? <br/> <a href="https://t.me/EquilixOfficial" target="_blank" className="text-blue-400 hover:underline">Contact Telegram</a>
-                </div>
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
+                {tournamentTab === 'all' ? (
+                  <div className="space-y-4">
+                    <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Active Tournaments</div>
+                    <TournamentCard name="Rumble" prize="₹250,000" fee="₹2,500" endsIn="4d 21h" image="https://img.icons8.com/color/96/trophy.png" />
+                    <TournamentCard name="Day off" prize="₹25,000" fee="Free" endsIn="5h 33m" image="https://img.icons8.com/color/96/medal.png" />
+                  </div>
+                ) : (
+                  <div className="space-y-6 animate-in fade-in duration-300">
+                    <div className="bg-[#242120] rounded-xl border border-gray-800 overflow-hidden">
+                      <table className="w-full text-xs">
+                        <tbody className="divide-y divide-gray-800">
+                          <tr><td className="p-4 text-gray-400 text-xs">Tournaments won:</td><td className="p-4 text-white font-bold text-right text-xs">0</td></tr>
+                          <tr><td className="p-4 text-gray-400 text-xs">Total prize money:</td><td className="p-4 text-white font-bold text-right text-xs">₹0</td></tr>
+                          <tr><td className="p-4 text-gray-400 text-xs">Largest prize:</td><td className="p-4 text-white font-bold text-right text-xs">₹0</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="flex flex-col items-center justify-center py-10 opacity-50 text-center">
+                        <History size={40} className="text-gray-700 mb-2" />
+                        <div className="text-white text-sm font-bold">No tournaments found</div>
+                        <p className="text-[10px] text-gray-500 px-10">Participate in a tournament to see stats.</p>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* --- MARKET SUBMENU (Empty as per HTML) --- */}
-            {activeMenu === 'market' && (
-              <div className="text-center text-gray-500 mt-10">
-                Currently not available
+          {/* --- B. FINANCE DRAWER --- */}
+          {activeMenu === 'finance' && (
+            <div className="flex flex-col h-full">
+               <div className="h-16 flex items-center px-4 border-b border-gray-800">
+                  <button onClick={() => setActiveMenu(null)} className="flex items-center text-gray-400 hover:text-white transition gap-2 text-xs font-bold uppercase tracking-wider"><ChevronLeft size={16} /> Back</button>
+               </div>
+               <div className="p-4 flex flex-col gap-2">
+                 <div onClick={() => handleSubItemClick('deposit')}><SubMenuItem icon={<CreditCard size={18}/>} title="Deposit" active={activeTab === 'deposit'} /></div>
+                 <div onClick={() => handleSubItemClick('withdraw')}><SubMenuItem icon={<Wallet size={18}/>} title="Withdrawal" active={activeTab === 'withdraw'} /></div>
+                 <div onClick={() => handleSubItemClick('bonus')}><SubMenuItem icon={<Gift size={18}/>} title="Bonus Codes" active={activeTab === 'bonus'} /></div>
+                 <div onClick={() => handleSubItemClick('history')}><SubMenuItem icon={<History size={18}/>} title="Transactions" active={activeTab === 'history'} /></div>
+               </div>
+            </div>
+          )}
+
+          {/* --- C. TRADING DRAWER --- */}
+          {activeMenu === 'trading' && (
+            <div className="flex flex-col h-full">
+               <div className="h-16 flex items-center px-4 border-b border-gray-800">
+                  <button onClick={() => setActiveMenu(null)} className="flex items-center text-gray-400 hover:text-white transition gap-2 text-xs font-bold uppercase tracking-wider"><ChevronLeft size={16} /> Back</button>
+               </div>
+               <div className="p-4 flex flex-col gap-2">
+                 <div onClick={() => handleSubItemClick('chart')}><SubMenuItem icon={<LayoutDashboard size={18}/>} title="Real Account" active={activeTab === 'chart'} /></div>
+                 <SubMenuItem icon={<Monitor size={18}/>} title="Demo Account" />
+               </div>
+            </div>
+          )}
+
+          {/* --- D. PROFILE DRAWER --- */}
+          {activeMenu === 'profile' && (
+            <div className="flex flex-col h-full p-4">
+              <div className="bg-[#2a2e39] p-6 rounded-lg text-center mb-6">
+                 <div className="w-16 h-16 bg-gray-600 rounded-full mx-auto mb-2 flex items-center justify-center"><User size={32} className="text-gray-300"/></div>
+                 <h3 className="text-white font-bold">User 50032</h3>
+                 <p className="text-green-500 font-bold">$0.00</p>
+                 <button onClick={() => handleSubItemClick('deposit')} className="mt-4 w-full bg-green-600 text-white text-xs py-2 rounded font-bold">Deposit</button>
               </div>
-            )}
+              <div onClick={() => handleSubItemClick('profile')}><SubMenuItem icon={<User size={18}/>} title="Personal Data" active={activeTab === 'profile'} /></div>
+              <SubMenuItem icon={<BarChart2 size={18}/>} title="Trading History" />
+            </div>
+          )}
 
-          </div>
+          {/* --- E. SUPPORT DRAWER --- */}
+      {/* --- SUPPORT SUBMENU --- */}
+{activeMenu === 'support' && (
+  <div className="flex flex-col h-full animate-in fade-in duration-300">
+    {/* Header with Back Button */}
+    <div className="h-16 flex items-center px-4 border-b border-gray-800">
+      <button 
+        onClick={() => setActiveMenu(null)} 
+        className="flex items-center text-gray-400 hover:text-white transition gap-2 text-xs font-bold uppercase tracking-wider"
+      >
+        <ChevronLeft size={16} /> Back
+      </button>
+    </div>
+
+    <div className="p-4 flex flex-col gap-2">
+      {/* 1. My Requests click hone par support page khulega */}
+      <div onClick={() => handleSubItemClick('support')}>
+        <SubMenuItem 
+          icon={<MessageSquare size={18}/>} 
+          title="My Requests" 
+          active={activeTab === 'support'} 
+        />
+      </div>
+
+      {/* 2. Create Request click hone par bhi support page khulega */}
+      <div onClick={() => handleSubItemClick('support')}>
+        <SubMenuItem 
+          icon={<FileText size={18}/>} 
+          title="Create Request" 
+          active={activeTab === 'support'}
+        />
+      </div>
+
+      {/* 3. FAQ click par (Agar aap FAQ page alag banana chahte ho toh yahan tab change kar sakte ho) */}
+      <div onClick={() => handleSubItemClick('support')}>
+        <SubMenuItem 
+          icon={<HelpCircle size={18}/>} 
+          title="FAQ" 
+          active={activeTab === 'support'}
+        />
+      </div>
+    </div>
+  </div>
+)}
+
         </div>
       )}
     </div>
   );
 };
 
-// --- HELPER COMPONENT 1: Main Icons (Left Strip) ---
-const MainIcon = ({ icon, label, isActive, onClick, to }) => {
-  const content = (
-    <div 
-      onClick={onClick}
-      className={`relative group flex flex-col items-center justify-center p-3 rounded-xl cursor-pointer transition-all duration-200 
-      ${isActive ? 'bg-[#2a2e39] text-white' : 'text-gray-500 hover:text-white hover:bg-[#1f1d1c]'}`}
-    >
+// --- HELPER COMPONENTS ---
+
+const MainIcon = ({ icon, label, isActive, onClick }) => (
+    <div onClick={onClick} className={`relative group flex flex-col items-center justify-center p-3 rounded-xl cursor-pointer transition-all duration-200 ${isActive ? 'bg-[#2a2e39] text-white' : 'text-gray-500 hover:text-white hover:bg-[#1f1d1c]'}`}>
       {icon}
       <span className="text-[10px] mt-1 font-medium hidden md:block">{label}</span>
-      
-      {/* Tooltip for desktop if collapsed (optional) */}
       {isActive && <div className="absolute right-0 top-2 bottom-2 w-1 bg-green-500 rounded-l"></div>}
     </div>
-  );
+);
 
-  return to ? <Link to={to} className="w-full">{content}</Link> : content;
-};
-
-// --- HELPER COMPONENT 2: Sub Menu Items (Drawer List) ---
-const SubMenuItem = ({ icon, title, desc, active }) => (
-  <div className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors border border-transparent
-    ${active ? 'bg-[#2a2e39] border-gray-700 text-white' : 'text-gray-400 hover:bg-[#22252e] hover:text-white'}`}>
+const SubMenuItem = ({ icon, title, active }) => (
+  <div className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors border border-transparent ${active ? 'bg-[#2a2e39] border-gray-700 text-white shadow-lg' : 'text-gray-400 hover:bg-[#22252e] hover:text-white'}`}>
     <div className={`${active ? 'text-green-500' : 'text-gray-500'}`}>{icon}</div>
-    <div className="flex flex-col">
-      <span className="font-bold text-sm">{title}</span>
-      {desc && <span className="text-[10px] text-gray-500">{desc}</span>}
+    <span className="font-bold text-sm">{title}</span>
+  </div>
+);
+
+const TournamentCard = ({ name, prize, fee, endsIn, image }) => (
+  <div className="bg-[#242120] rounded-xl border border-gray-800 p-4 relative overflow-hidden group">
+    <div className="relative z-10 space-y-2">
+      <h3 className="text-white font-black italic">{name.toUpperCase()}</h3>
+      <div className="text-[10px] text-gray-400">Prize fund: <span className="text-white font-bold">{prize}</span></div>
+      <div className="text-[10px] text-gray-400">Fee: <span className="text-white font-bold">{fee}</span></div>
+      <div className="flex justify-between items-center pt-2 border-t border-gray-800 mt-2">
+        <span className="text-[10px] text-green-500 font-mono font-bold">{endsIn}</span>
+        <button className="bg-green-600 px-4 py-1 rounded text-[10px] font-bold text-white uppercase">Join</button>
+      </div>
     </div>
+    <img src={image} className="absolute right-[-10px] top-2 w-16 opacity-20 rotate-12 group-hover:scale-110 transition-all" alt="" />
   </div>
 );
 
