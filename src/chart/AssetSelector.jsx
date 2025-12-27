@@ -13,7 +13,6 @@ import {
   TrendingUp,
 } from 'lucide-react';
 
-/* -------------------- STATIC ASSETS DATA -------------------- */
 const STATIC_DATA = [
   { id: 'GBPUSD', name: 'GBP/USD-OTC', payout: 94, category: 'currencies', icon: 'https://flagcdn.com/w40/gb.png' },
   { id: 'USDARS', name: 'USD/ARS-UTC', payout: 93, category: 'currencies', icon: 'https://flagcdn.com/w40/us.png' },
@@ -29,16 +28,12 @@ const AssetSelector = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('currencies');
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // States for API and Selection
   const [cryptoAssets, setCryptoAssets] = useState([]);
-  const [activeIcon, setActiveIcon] = useState('https://flagcdn.com/w40/gb.png');
+  const [activeIcon, setActiveIcon] = useState(currentAsset?.icon || 'https://flagcdn.com/w40/gb.png');
 
-  /* -------------------- REAL CRYPTO SEARCH API -------------------- */
   useEffect(() => {
     if (activeCategory === 'crypto') {
-      // Agar search term hai toh search API, warna top markets API
-      const url = searchTerm.length > 1 
+      const url = searchTerm.length > 1
         ? `https://api.coingecko.com/api/v3/search?query=${searchTerm}`
         : `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1&sparkline=false`;
 
@@ -46,10 +41,8 @@ const AssetSelector = () => {
         try {
           const res = await fetch(url);
           const data = await res.json();
-          
-          // Search API aur Markets API ka response format alag hota hai
           let rawCoins = searchTerm.length > 1 ? data.coins : data;
-          
+
           const formatted = rawCoins.slice(0, 50).map(coin => ({
             id: coin.id,
             name: coin.symbol ? `${coin.symbol.toUpperCase()}/USD` : coin.name,
@@ -69,56 +62,64 @@ const AssetSelector = () => {
   }, [searchTerm, activeCategory]);
 
   const filteredStatic = STATIC_DATA.filter(
-    (asset) =>
-      asset.category === activeCategory &&
-      asset.name.toLowerCase().includes(searchTerm.toLowerCase())
+    asset => asset.category === activeCategory && asset.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const displayList = activeCategory === 'crypto' ? cryptoAssets : filteredStatic;
-const handleSelect = (asset) => {
-  // Agar crypto hai toh symbol bhejo (BTC), agar currency hai toh name (GBP/USD)
-  const finalAssetName = asset.category === 'crypto' 
-    ? asset.name.split('/')[0] 
-    : asset.name;
 
-  dispatch(setAsset(finalAssetName));
-  dispatch(setPayoutPercentage(asset.payout));
-  
-  // Icon update logic
-  setActiveIcon(asset.icon);
-  setIsOpen(false);
-};
+  const handleSelect = (asset) => {
+
+     console.log('happy birthday dhor',asset)
+    if (asset.category === 'crypto') {
+      dispatch(setAsset({
+        name: asset.name.split('/')[0].trim(),
+        displayName: asset.name,
+        id: asset.id,
+        icon: asset.icon
+      }));
+      dispatch(setPayoutPercentage(asset.payout));
+      setActiveIcon(asset.icon);
+    } else {
+      dispatch(setAsset({
+        name: asset.name,
+        displayName: asset.name,
+        id: null,
+        icon: asset.icon
+      }));
+      dispatch(setPayoutPercentage(asset.payout));
+      setActiveIcon(asset.icon);
+    }
+    setIsOpen(false);
+  };
+
   return (
     <div className="relative">
-{/* Trigger button style */}
-<button
-  onClick={() => setIsOpen(prev => !prev)}
-  className="flex items-center gap-2 bg-transparent hover:bg-white/10 px-3 py-1 rounded border border-gray-600 text-white text-sm font-medium"
->
+      <button
+        onClick={() => setIsOpen(prev => !prev)}
+        className="flex items-center gap-2 bg-transparent hover:bg-white/10 px-3 py-1 rounded border border-gray-600 text-white text-sm font-medium"
+      >
+        <img
+          src={currentAsset?.icon || activeIcon}
+          className="w-5 h-5 rounded-full object-cover"
+          alt="asset"
+        />
+        <span>{currentAsset?.displayName || "BTC/USD"}</span>
+        <span className="text-green-400">+{payoutPercentage}%</span>
+        <ChevronDown size={16} />
+      </button>
 
-  <img src={activeIcon} className="w-5 h-5" />
-  <span>{currentAsset}</span>
-  <span className="text-green-400">+{payoutPercentage}%</span>
-  <ChevronDown size={16} />
-</button>
-
-      {/* ---------- DROPDOWN (YOUR ORIGINAL DESIGN) ---------- */}
       {isOpen && (
         <>
           <div
             className="fixed inset-0 z-[9998] bg-black/70 backdrop-blur-sm md:hidden"
             onClick={() => setIsOpen(false)}
           />
-
           <div className="fixed md:absolute top-0 md:top-full left-0 right-0 bottom-0 md:bottom-auto md:left-0 md:mt-2 w-full md:w-[400px] bg-[#131722] md:rounded-lg shadow-2xl z-[9999] flex flex-col border border-[#2a2e39] overflow-hidden h-full md:h-auto max-h-screen md:max-h-[550px]">
-
             <div className="p-4 border-b border-[#2a2e39]">
               <div className="flex items-center justify-between mb-4 md:hidden">
                 <span className="text-white font-bold">Select Asset</span>
                 <X onClick={() => setIsOpen(false)} className="text-gray-400 cursor-pointer" />
               </div>
-
-              {/* Category Icons */}
               <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
                 <CategoryIcon id="currencies" label="Currencies" active={activeCategory} onClick={setActiveCategory} icon={<DollarSign size={18} />} />
                 <CategoryIcon id="crypto" label="Crypto" active={activeCategory} onClick={setActiveCategory} icon={<Bitcoin size={18} />} />
@@ -126,8 +127,6 @@ const handleSelect = (asset) => {
                 <CategoryIcon id="stocks" label="Stocks" active={activeCategory} onClick={setActiveCategory} icon={<FileText size={18} />} />
                 <CategoryIcon id="indices" label="Indices" active={activeCategory} onClick={setActiveCategory} icon={<TrendingUp size={18} />} />
               </div>
-
-              {/* Search */}
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-2.5 text-gray-500" size={16} />
@@ -177,7 +176,7 @@ const handleSelect = (asset) => {
         </>
       )}
 
-      <style>{`
+      <style >{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb {

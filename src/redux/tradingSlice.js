@@ -2,7 +2,12 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   balance: 10000,
-  currentAsset: "BTCUSDT",
+  currentAsset: {
+    name: "BTC",
+    displayName: "BTC/USD",
+    id: "bitcoin",
+    icon: "https://assets.coingecko.com/coins/images/1/small/bitcoin.png"
+  },
   payoutPercentage: 82,
   tradeAmount: 10,
   tradeTime: 60,
@@ -10,7 +15,6 @@ const initialState = {
   timeframe: "1",
   openTrades: [],
   tradeHistory: [],
-  currentAsset: "BTC/USD",
   currentPrice: 0,
 };
 
@@ -36,11 +40,11 @@ export const tradingSlice = createSlice({
     setTimeframe: (state, action) => {
       state.timeframe = action.payload;
     },
-  addOpenTrade: (state, action) => {
-  state.openTrades.push(action.payload);
-  // state.tradeAmount ki jagah payload ka actual amount minus karein
-  state.balance -= action.payload.amount; 
-},
+    addOpenTrade: (state, action) => {
+      const trade = action.payload;
+      state.openTrades.push(trade);
+      state.balance -= Number(trade.amount);
+    },
     updatePrice: (state, action) => {
       state.currentPrice = action.payload;
     },

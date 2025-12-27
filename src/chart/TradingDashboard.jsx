@@ -1,24 +1,35 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux'; 
 import SidebarLeft from '../chart/SidebarLeft';
-import TradePanel from '../chart/TradePanel'; // Direct Import
-import IconStrip from '../chart/IconStrip';   // Direct Import
+import TradePanel from '../chart/TradePanel'; 
+import IconStrip from '../chart/IconStrip';   
 import Header from '../chart/Header';
 import ChartArea from '../chart/ChartArea';
 import MobileControls from '../chart/MobileControls';
 import PriceWebSocket from '../chart/PriceWebSocket'; 
 import DepositPage from '../Leftsidebar/DepositPage'; 
 import SupportPage from '../Leftsidebar/SupportPage'; 
+// Tournament Modal Import karein (Path check kar lena apne hisaab se)
+import TournamentModal from '../chart/TournamentModal'; 
 import { Menu, X, LayoutDashboard } from 'lucide-react';
 
 const TradingDashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('chart'); 
+  
+  // --- Tournament Modal States ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedT, setSelectedT] = useState(null);
 
   const { currentAsset, currentPrice } = useSelector((state) => state.trading);
   const displayPrice = currentPrice > 0 ? currentPrice.toFixed(2) : 'Connecting...';
 
-  // Helper: Kya hum chart mode mein hain?
+  // --- Modal Open Function ---
+  const handleOpenTournament = (tournament) => {
+    setSelectedT(tournament);
+    setIsModalOpen(true);
+  };
+
   const isChartMode = activeTab === 'chart';
 
   return (
@@ -26,22 +37,25 @@ const TradingDashboard = () => {
       <PriceWebSocket />
 
       {/* --- 1. HEADER --- */}
-      <div className="flex-shrink-0 z-30 bg-[#1b1817] border-b border-gray-800 h-[60px] flex items-center">
+      <div className="flex-shrink-0 z-[9999] bg-[#1b1817] border-b border-gray-800 h-[60px] flex items-center">
         <Header price={displayPrice} asset={currentAsset} setActiveTab={setActiveTab} />
       </div>
 
       {/* --- CONTENT WRAPPER --- */}
       <div className="flex flex-1 overflow-hidden relative">
         
-        {/* --- 2. LEFT SIDEBAR (Always Fixed) --- */}
+        {/* --- 2. LEFT SIDEBAR (Tournament Logic Added Here) --- */}
         <div className="hidden lg:block h-full flex-shrink-0 border-r border-gray-800 bg-[#161413]">
-          <SidebarLeft setActiveTab={setActiveTab} activeTab={activeTab} />
+          <SidebarLeft 
+            setActiveTab={setActiveTab} 
+            activeTab={activeTab} 
+            onTournamentClick={handleOpenTournament} // Parent function pass kiya
+          />
         </div>
 
         {/* --- 3. CENTER AREA (Dynamic) --- */}
         <div className="flex-1 flex overflow-hidden bg-[#131722] relative">
           
-          {/* Main Content: Chart or Pages */}
           <main className="flex-1 relative h-full overflow-hidden">
             {isChartMode ? (
               <div className="w-full h-full relative">
@@ -57,24 +71,26 @@ const TradingDashboard = () => {
             )}
           </main>
 
-          {/* --- 4. RIGHT SIDEBAR AREA (The Alag-Alag Logic) --- */}
+          {/* --- 4. RIGHT SIDEBAR AREA --- */}
           <div className="hidden lg:flex h-full flex-shrink-0">
-            
-            {/* A. TRADE PANEL: Sirf chart mode mein dikhega */}
             {isChartMode && (
               <aside className="w-[280px] bg-[#161413] border-l border-gray-800 animate-in slide-in-from-right duration-300">
                 <TradePanel />
               </aside>
             )}
-
-            {/* B. ICON STRIP: Hamesha dikhega, chahe Deposit khula ho ya Chart */}
             <aside className="w-16 bg-[#161413] border-l border-gray-800 relative z-40">
               <IconStrip />
             </aside>
-
           </div>
         </div>
       </div>
+
+      {/* --- 5. TOURNAMENT MODAL (Pure Dashboard ke upar aayega) --- */}
+      <TournamentModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        data={selectedT} 
+      />
 
       {/* Mobile Floating Back Button */}
       {!isChartMode && (
@@ -83,7 +99,7 @@ const TradingDashboard = () => {
         </button>
       )}
 
-      {/* --- MOBILE DRAWER (Logic Same) --- */}
+      {/* --- MOBILE DRAWER --- */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[60] bg-black/80 lg:hidden flex">
           <div className="w-72 h-full bg-[#161413] shadow-2xl animate-in slide-in-from-left duration-300">
@@ -98,6 +114,7 @@ const TradingDashboard = () => {
                     setIsMobileMenuOpen(false);
                 }} 
                 activeTab={activeTab} 
+                onTournamentClick={handleOpenTournament} // Mobile drawer ke liye bhi add kiya
               />
             </div>
           </div>

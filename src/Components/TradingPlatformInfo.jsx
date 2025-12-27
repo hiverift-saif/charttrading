@@ -10,115 +10,126 @@ const paymentMethods = [
   { id: 6, name: 'Bybit Pay', icon: <svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 64"><path d="M58.5 37.806V19H62.1612V37.806H58.5Z" fill="white"></path><path d="M15.8455 43.3922H8V24.5862H15.5317C19.1929 24.5862 21.3217 26.6445 21.3217 29.8698C21.3217 31.9551 19.9513 33.3058 19.0046 33.7542C20.1344 34.2836 21.5832 35.4721 21.5832 37.9789C21.5832 41.4905 19.1877 43.3922 15.8455 43.3922ZM15.2388 27.8601H11.656V32.1929H15.2388C16.7922 32.1929 17.6605 31.3231 17.6605 30.0265C17.6605 28.7353 16.7922 27.8601 15.2388 27.8601ZM15.4742 35.4938H11.656V40.1183H15.4742C17.1322 40.1183 17.922 39.0648 17.922 37.7952C17.922 36.5256 17.1322 35.4992 15.4742 35.4992V35.4938Z" fill="white"></path><path d="M32.7501 35.6774V43.3922H29.115V35.6774L23.4819 24.5862H27.457L30.9561 32.1658L34.4081 24.5862H38.3832L32.7501 35.6774Z" fill="white"></path><path d="M48.7596 43.3922H40.9141V24.5862H48.4458C52.107 24.5862 54.2358 26.6445 54.2358 29.8698C54.2358 31.9551 52.8654 33.3058 51.9187 33.7542C53.0485 34.2836 54.4973 35.4721 54.4973 37.9789C54.4973 41.4905 52.1018 43.3922 48.7596 43.3922ZM48.1529 27.8601H44.5701V32.1929H48.1529C49.7063 32.1929 50.5745 31.3231 50.5745 30.0265C50.5745 28.7353 49.7063 27.8601 48.1529 27.8601ZM48.3882 35.4938H44.5701V40.1183H48.3882C50.0462 40.1183 50.836 39.0648 50.836 37.7952C50.836 36.5256 50.0462 35.4992 48.3882 35.4992V35.4938Z" fill="white"></path><path d="M73.9553 27.8601V43.3922H70.2993V27.8601H65.3984V24.5862H78.8561V27.8601H73.9553Z" fill="white"></path><path d="M91.6188 28.91C92.5656 28.91 93.3331 29.6775 93.3331 30.6243C93.3331 31.5711 92.5656 32.3386 91.6188 32.3386H89.5235V28.91H91.6188Z" fill="white"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M120 34.7221C120 37.1533 118.411 39.2987 116.085 40.0066L106.857 42.815L116.857 27.0052H114.095L111.619 31.291L109.238 27.0052H106.286L110.286 33.3863L106.026 40.1483H83.6187V28.7195C83.6187 25.9844 85.8359 23.7671 88.5711 23.7671H120V34.7221ZM89.333 27.0052C88.1758 27.0052 87.2378 27.9433 87.2378 29.1005V37.8625H89.5235V34.053H91.9045C93.8507 34.053 95.4284 32.4753 95.4284 30.5291C95.4284 28.5829 93.8507 27.0052 91.9045 27.0052H89.333ZM95.2379 37.8625H97.9046L100.762 29.8624L103.429 37.8625H106.286L102.286 27.0052H99.238L95.2379 37.8625Z" fill="white"></path></svg> },
 ];
 
-const QuickWithdrawal = () => {
-  return (
-    <section className="bg-black  px-4 flex flex-col items-center justify-center overflow-hidden font-sans ">
-      
-      {/* --- Header Section --- */}
-      <div className="text-center  z-10">
-        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white leading-tight">
-          <span className="text-[#00FF66]">Quick withdrawal</span> <br />
-          <span className="opacity-90 text-xl sm:text-2xl md:text-5xl text-white">
-            with local payment options
-          </span>
-        </h2>
-      </div>
+const TradingPlatformInfo = () => {
+return (
+  <section className="bg-black px-4 flex flex-col items-center justify-center overflow-hidden font-sans">
 
-      {/* --- DESKTOP DESIGN (Large Screens) --- */}
-      <div className="hidden lg:flex items-center justify-center w-full max-w-6xl h-[450px]">
-        <div className="flex -space-x-24 perspective-[1500px]">
-          {paymentMethods.map((method, index) => (
-            <motion.div
-              key={`desktop-${method.id}`}
-              initial={{ rotateY: 35, skewY: -8, z: -100 }}
-              whileHover={{ 
-                rotateY: 0, 
-                skewY: 0, 
-                scale: 1.15, 
-                zIndex: 100, 
-                x: index < 3 ? -20 : 20,
-                z: 50
-              }}
-              className="relative w-72 h-68 cursor-pointer group"
-              style={{ transformStyle: "preserve-3d" }}
-            >
-              <div className="w-full h-full bg-[#121212] border border-white/10 rounded-3xl flex items-center justify-center p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all group-hover:border-[#00FF66]/40">
-                <div className="text-white w-full h-full flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
-                  {method.icon}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+    {/* --- Header Section --- */}
+    <div className="text-center z-10">
+      <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white leading-tight">
+        <span className="text-[#00FF66]">Quick withdrawal</span> <br />
+        <span className="opacity-90 text-xl sm:text-2xl md:text-5xl text-white">
+          with local payment options
+        </span>
+      </h2>
+    </div>
 
-      {/* --- TABLET DESIGN (sm to lg screens) --- */}
-      <div className="hidden sm:grid lg:hidden grid-cols-2 gap-6 w-full max-w-4xl px-6">
-        {paymentMethods.map((method) => (
+    {/* --- DESKTOP DESIGN (UNCHANGED) --- */}
+    <div className="hidden lg:flex items-center justify-center w-full max-w-6xl h-[450px]">
+      <div className="flex -space-x-24 perspective-[1500px]">
+        {paymentMethods.map((method, index) => (
           <motion.div
-            key={`tablet-${method.id}`}
-            whileHover={{ scale: 1.02 }}
-            className="bg-[#121212] border border-white/10 rounded-2xl h-40 flex items-center justify-center p-10"
+            key={`desktop-${method.id}`}
+            initial={{ rotateY: 35, skewY: -8, z: -100 }}
+            whileHover={{
+              rotateY: 0,
+              skewY: 0,
+              scale: 1.15,
+              zIndex: 100,
+              x: index < 3 ? -20 : 20,
+              z: 50,
+            }}
+            transition={{ type: "spring", stiffness: 200, damping: 18 }}
+            className="relative w-72 h-68 cursor-pointer group"
+            style={{ transformStyle: "preserve-3d" }}
           >
-            <div className="text-white w-full max-w-[150px]">
-              {method.icon}
+            <div className="w-full h-full bg-[#121212] border border-white/10 rounded-3xl flex items-center justify-center p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all group-hover:border-[#00FF66]/40">
+              <div className="text-white w-full h-full flex items-center justify-center scale-90 group-hover:scale-100 transition-transform">
+                {method.icon}
+              </div>
             </div>
           </motion.div>
         ))}
       </div>
+    </div>
 
-      {/* --- MOBILE DESIGN (Stacked Effect) --- */}
-<div className="flex sm:hidden flex-col items-center w-full relative h-[480px] mt-4">
-  <div className="relative w-full max-w-[280px]">
-
-          {[5, 0, 1, 3, 4, 2].map((methodIndex, index) => {
-      const method = paymentMethods[methodIndex];
-
-      const position = index;
-      const translateY = position * 55;
-      const scale = 0.8 + position * 0.04;
-      const opacity = Math.min(1, 0.5 + position * 0.1);
-
-      return (
+    {/* --- TABLET DESIGN (HOVER + TAP) --- */}
+    <div className="hidden sm:grid lg:hidden grid-cols-2 gap-6 w-full max-w-4xl px-6 mt-8">
+      {paymentMethods.map((method) => (
         <motion.div
-          key={`mobile-${method.id}`}
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ y: translateY, scale, opacity }}
-          transition={{ delay: index * 0.1 }}
-          style={{
-            zIndex: position,
-            position: "absolute",
-            top: 0,
-            width: "100%",
-          }}
+          key={`tablet-${method.id}`}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          transition={{ duration: 0.2 }}
+          className="bg-[#121212] border border-white/10 rounded-2xl h-40 flex items-center justify-center p-10 active:border-[#00FF66]/40"
         >
-          <div className="bg-[#121212] border border-white/10 rounded-[28px] aspect-[1.6/1] flex items-center justify-center p-8 shadow-2xl relative overflow-hidden">
-
-            <div className="absolute top-0 inset-x-0 h-full bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-
-            <div className="text-white w-full h-full w-[180px]  flex items-center justify-center relative z-10">
-              {method.icon}
-            </div>
-
+          <div className="text-white w-full max-w-[150px]">
+            {method.icon}
           </div>
         </motion.div>
-      );
-    })}
+      ))}
+    </div>
+
+{/* --- MOBILE DESIGN (STACKED + TAP ANIMATION) --- */}
+<div className="flex sm:hidden flex-col items-center w-full relative h-120 mt-6">
+  <div className="relative w-full max-w-70">
+{[5, 0, 1, 3, 4, 2].map((methodIndex, index) => {
+  const method = paymentMethods[methodIndex];
+  const position = index;
+  const translateY = position * 55;
+  const scale = 0.8 + position * 0.04;
+  const opacity = Math.min(1, 0.5 + position * 0.1);
+
+  return (
+    <motion.div
+      key={`mobile-${method.id}`}
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ 
+        y: translateY, 
+        scale, 
+        opacity,
+      }}
+      // --- Smooth Hold & Release Logic ---
+      whileTap={{ 
+        scale: scale + 0.08, 
+        y: translateY - 40, // 40px upar uthega
+        zIndex: 100 // Tap karte hi sabke upar
+      }}
+      transition={{ 
+        type: "spring", 
+        stiffness: 100, // Kam stiffness = No Jhatka
+        damping: 20,    // Controlled bounce
+        mass: 1.2,      // Thoda weight feel hoga
+        // Isse card wapas jate waqt 1 sec ka feel dega
+        default: { duration: 0.5 } 
+      }}
+      style={{
+        zIndex: 10 + position,
+        position: "absolute",
+        top: 0,
+        width: "100%",
+        touchAction: "none",
+        // 3D effect ke liye
+        transformStyle: "preserve-3d",
+      }}
+    >
+      <div className="bg-[#121212] border border-white/10 rounded-[28px] aspect-[1.6/1] flex items-center justify-center p-8 shadow-[0_20px_40px_rgba(0,0,0,0.6)] active:border-[#00FF66]/50">
+        
+        {/* Glass effect background to make it look smooth */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent rounded-[28px] pointer-events-none" />
+        
+        <div className="text-white w-[180px] flex items-center justify-center relative z-10">
+          {method.icon}
+        </div>
+      </div>
+    </motion.div>
+  );
+})}
   </div>
 </div>
+  </section>
+);
 
-
-      {/* Footer Button */}
-      {/* <motion.button 
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="mt-12 lg:mt-8 text-[#00FF66] flex items-center gap-2 font-semibold text-lg hover:brightness-125 transition-all z-20"
-      >
-        Show all 24 <span className="text-2xl leading-none">›</span>
-      </motion.button> */}
-
-    </section>
-  );
 };
 
-export default QuickWithdrawal;
+export default TradingPlatformInfo;

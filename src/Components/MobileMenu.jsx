@@ -1,5 +1,15 @@
 import React from "react";
-import { Facebook, Instagram, Twitter, Youtube, Send, Globe, MessageCircle, UserPlus, LogIn  } from "lucide-react";
+import {
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube,
+  Send,
+  Globe,
+  MessageCircle,
+  UserPlus,
+  LogIn,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 const MobileMenu = ({ isOpen, onClose }) => {
@@ -18,17 +28,19 @@ const MobileMenu = ({ isOpen, onClose }) => {
           : "h-0 opacity-0 invisible"
       }`}
     >
-      {/* Scrollable Container */}
+      {/* Scrollable */}
       <div className="h-full overflow-y-auto custom-scrollbar pb-10">
-        
-        <div className="p-6 md:p-8 max-w-6xl mx-auto">
-          
+        <div className="p-6 md:p-8 max-w-6xl mx-auto text-sm md:text-base">
+
           {/* HEADER */}
           <div className="mb-6">
-            <h2 className="text-white text-3xl font-bold mb-2 font-nunito-custom">Menu</h2>
+            <h2 className="text-white text-3xl md:text-4xl font-bold mb-2 font-nunito-custom">
+              Navigation
+            </h2>
             <div className="h-0.5 w-16 bg-blue-500"></div>
           </div>
 
+          {/* AUTH BUTTONS */}
 <div className="flex gap-2 sm:gap-3 mb-8">
   <button
     onClick={() => handleBtnClick("/signup")}
@@ -61,76 +73,91 @@ const MobileMenu = ({ isOpen, onClose }) => {
   </button>
 </div>
 
-          {/* GRID LAYOUT */}
+
+          {/* GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            {/* HOW IT WORKS */}
+
+            {/* GET STARTED */}
             <div className="bg-zinc-900 rounded-lg p-5 border border-zinc-800">
-              <h3 className="text-gray-400 font-bold mb-4 text-sm uppercase font-nunito-custom">How it works</h3>
+              <h3 className="text-gray-400 font-bold mb-4 uppercase text-sm md:text-base">
+                Get Started
+              </h3>
               <ul className="space-y-3">
-                <li><Link to="/Freedemo" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Free demo</Link></li>
-                <li><Link to="/Quickstart" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Quick start</Link></li>
-                <li><Link to="/Education" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Education</Link></li>
-                <li><Link to="/learning-tools" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Learning Tools</Link></li>
+                <li><Link to="/demo" onClick={onClose} className="text-gray-300 hover:text-white">Practice Account</Link></li>
+                <li><Link to="/quickstart" onClick={onClose} className="text-gray-300 hover:text-white">Quick Setup</Link></li>
+                <li><Link to="/guides" onClick={onClose} className="text-gray-300 hover:text-white">Beginner Guides</Link></li>
+                <li><Link to="/tools" onClick={onClose} className="text-gray-300 hover:text-white">Trading Tools</Link></li>
               </ul>
             </div>
 
-            {/* WHY POCKET OPTION */}
+            {/* FEATURES */}
             <div className="bg-zinc-900 rounded-lg p-5 border border-zinc-800">
-              <h3 className="text-gray-400 font-bold mb-4 text-sm uppercase font-nunito-custom">Why Pocket Option</h3>
+              <h3 className="text-gray-400 font-bold mb-4 uppercase text-sm md:text-base">
+                Platform Features
+              </h3>
               <ul className="space-y-3">
-                <li><Link to="/tradinginstruments" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">100+ trading instruments</Link></li>
-                <li><Link to="/seamless-trading" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Instant Deposits & Withdrawals</Link></li>
-                <li><Link to="/PromoBonuses" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Promo & Bonuses</Link></li>
-                <li><Link to="/SocialTrading" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Social Trading</Link></li>
+                <li><Link to="/assets" onClick={onClose} className="text-gray-300 hover:text-white">Multiple Assets</Link></li>
+                <li><Link to="/payments" onClick={onClose} className="text-gray-300 hover:text-white">Fast Payments</Link></li>
+                <li><Link to="/rewards" onClick={onClose} className="text-gray-300 hover:text-white">Offers & Rewards</Link></li>
+                <li><Link to="/copy-trading" onClick={onClose} className="text-gray-300 hover:text-white">Copy Trading</Link></li>
               </ul>
             </div>
 
-            {/* PLATFORMS */}
+            {/* ACCESS */}
             <div className="bg-zinc-900 rounded-lg p-5 border border-zinc-800">
-              <h3 className="text-gray-400 font-bold mb-4 text-sm uppercase font-nunito-custom">Platforms</h3>
+              <h3 className="text-gray-400 font-bold mb-4 uppercase text-sm md:text-base">
+                Access
+              </h3>
               <ul className="space-y-3">
                 <li>
-                  <Link to="/platform-designed" onClick={onClose} className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors text-sm font-roboto">
-                    <Globe size={18} /> Web App
+                  <Link
+                    to="/web-platform"
+                    onClick={onClose}
+                    className="flex items-center gap-2 text-gray-300 hover:text-white"
+                  >
+                    <Globe size={18} /> Web Platform
                   </Link>
                 </li>
                 <li>
-                  <Link to="/Contacts" onClick={onClose} className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors text-sm font-roboto">
-                    <Send size={18} /> Telegram bot
+                  <Link
+                    to="/telegram-support"
+                    onClick={onClose}
+                    className="flex items-center gap-2 text-gray-300 hover:text-white"
+                  >
+                    <Send size={18} /> Telegram Support
                   </Link>
                 </li>
               </ul>
             </div>
 
-            {/* ABOUT US */}
+            {/* COMPANY */}
             <div className="bg-zinc-900 rounded-lg p-5 border border-zinc-800">
-              <h3 className="text-gray-400 font-bold mb-4 text-sm uppercase font-nunito-custom">About us</h3>
+              <h3 className="text-gray-400 font-bold mb-4 uppercase text-sm md:text-base">
+                Company
+              </h3>
               <ul className="space-y-3">
-                <li><Link to="/AbouttheCompany" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">About the Company</Link></li>
-                <li><Link to="/MaxtradingBlog" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Pocket Option Blog</Link></li>
-                <li><Link to="/Contacts" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Contacts</Link></li>
-                <li><Link to="/Reviews" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Reviews</Link></li>
-                <li><Link to="/SupportService" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Support Service</Link></li>
-                <li><Link to="/TermsandConditions" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Terms and Conditions</Link></li>
-                <li><Link to="/AMLKYCpolicy" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">AML and KYC policy</Link></li>
-                <li><Link to="/Privacypolicy" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Privacy policy</Link></li>
-                <li><Link to="/Paymentpolicy" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Payment policy</Link></li>
-                <li><Link to="/Informationdisclosure" onClick={onClose} className="text-gray-300 hover:text-white transition-colors text-sm font-roboto">Information disclosure</Link></li>
+                <li><Link to="/about" onClick={onClose} className="text-gray-300 hover:text-white">About Us</Link></li>
+                <li><Link to="/blog" onClick={onClose} className="text-gray-300 hover:text-white">Insights & Blog</Link></li>
+                <li><Link to="/contact" onClick={onClose} className="text-gray-300 hover:text-white">Contact</Link></li>
+                <li><Link to="/reviews" onClick={onClose} className="text-gray-300 hover:text-white">User Reviews</Link></li>
+                <li><Link to="/support" onClick={onClose} className="text-gray-300 hover:text-white">Support Center</Link></li>
+                <li><Link to="/terms" onClick={onClose} className="text-gray-300 hover:text-white">Terms of Service</Link></li>
+                <li><Link to="/privacy" onClick={onClose} className="text-gray-300 hover:text-white">Privacy Policy</Link></li>
+                <li><Link to="/compliance" onClick={onClose} className="text-gray-300 hover:text-white">Compliance</Link></li>
               </ul>
             </div>
 
           </div>
-          
-          {/* SOCIAL ICONS */}
+
+          {/* SOCIAL */}
           <div className="mt-8 pt-6 border-t border-zinc-800">
             <div className="flex gap-5 justify-center flex-wrap">
-              <a href="#" onClick={onClose} className="text-gray-400 hover:text-white transition-colors"><Facebook size={22} /></a>
-              <a href="#" onClick={onClose} className="text-gray-400 hover:text-white transition-colors"><Send size={22} /></a>
-              <a href="#" onClick={onClose} className="text-gray-400 hover:text-white transition-colors"><Instagram size={22} /></a>
-              <a href="#" onClick={onClose} className="text-gray-400 hover:text-white transition-colors"><Twitter size={22} /></a>
-              <a href="#" onClick={onClose} className="text-gray-400 hover:text-white transition-colors"><Youtube size={22} /></a>
-              <a href="#" onClick={onClose} className="text-gray-400 hover:text-white transition-colors"><MessageCircle size={22} /></a>
+              <a className="text-gray-400 hover:text-white"><Facebook size={22} /></a>
+              <a className="text-gray-400 hover:text-white"><Send size={22} /></a>
+              <a className="text-gray-400 hover:text-white"><Instagram size={22} /></a>
+              <a className="text-gray-400 hover:text-white"><Twitter size={22} /></a>
+              <a className="text-gray-400 hover:text-white"><Youtube size={22} /></a>
+              <a className="text-gray-400 hover:text-white"><MessageCircle size={22} /></a>
             </div>
           </div>
 

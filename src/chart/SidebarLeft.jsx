@@ -5,7 +5,8 @@ import {
   MessageSquare, FileText, HelpCircle
 } from 'lucide-react';
 
-const SidebarLeft = ({ setActiveTab, activeTab }) => {
+// <--- MODIFIED: Added 'onTournamentClick' in props
+const SidebarLeft = ({ setActiveTab, activeTab, onTournamentClick }) => {
   // States for Sidebar and Tabs
   const [activeMenu, setActiveMenu] = useState(null);
   const [tournamentTab, setTournamentTab] = useState('all'); // 'all' or 'stats'
@@ -19,6 +20,13 @@ const SidebarLeft = ({ setActiveTab, activeTab }) => {
     setActiveTab(tabName);
     setActiveMenu(null); // Drawer close on selection
   };
+
+  const handleLogout = () => {
+  localStorage.removeItem("token");   // token delete
+  sessionStorage.clear();             // session delete (optional)
+  window.location.href = "/login";    // login page redirect (change if route different)
+};
+
 
   return (
     <div className="flex h-full z-50">
@@ -92,8 +100,23 @@ const SidebarLeft = ({ setActiveTab, activeTab }) => {
                 {tournamentTab === 'all' ? (
                   <div className="space-y-4">
                     <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Active Tournaments</div>
-                    <TournamentCard name="Rumble" prize="₹250,000" fee="₹2,500" endsIn="4d 21h" image="https://img.icons8.com/color/96/trophy.png" />
-                    <TournamentCard name="Day off" prize="₹25,000" fee="Free" endsIn="5h 33m" image="https://img.icons8.com/color/96/medal.png" />
+                    
+                    {/* <--- MODIFIED: Wrapped in div with onClick for modal trigger */}
+                    <div 
+                      onClick={() => onTournamentClick({ name: "Rumble", prize: "₹250,000", fee: "₹2,500", endsIn: "23h 49m 50s" })} 
+                      className="cursor-pointer active:scale-[0.98] transition-transform"
+                    >
+                      <TournamentCard name="Rumble" prize="₹250,000" fee="₹2,500" endsIn="4d 21h" image="https://img.icons8.com/color/96/trophy.png" />
+                    </div>
+
+                    <div 
+                      onClick={() => onTournamentClick({ name: "Day off", prize: "₹25,000", fee: "Free", endsIn: "7h 49m 36s" })} 
+                      className="cursor-pointer active:scale-[0.98] transition-transform"
+                    >
+                      <TournamentCard name="Day off" prize="₹25,000" fee="Free" endsIn="5h 33m" image="https://img.icons8.com/color/96/medal.png" />
+                    </div>
+                    {/* --- END MODIFICATION --- */}
+
                   </div>
                 ) : (
                   <div className="space-y-6 animate-in fade-in duration-300">
@@ -145,62 +168,30 @@ const SidebarLeft = ({ setActiveTab, activeTab }) => {
             </div>
           )}
 
-          {/* --- D. PROFILE DRAWER --- */}
-          {activeMenu === 'profile' && (
-            <div className="flex flex-col h-full p-4">
-              <div className="bg-[#2a2e39] p-6 rounded-lg text-center mb-6">
-                 <div className="w-16 h-16 bg-gray-600 rounded-full mx-auto mb-2 flex items-center justify-center"><User size={32} className="text-gray-300"/></div>
-                 <h3 className="text-white font-bold">User 50032</h3>
-                 <p className="text-green-500 font-bold">$0.00</p>
-                 <button onClick={() => handleSubItemClick('deposit')} className="mt-4 w-full bg-green-600 text-white text-xs py-2 rounded font-bold">Deposit</button>
-              </div>
-              <div onClick={() => handleSubItemClick('profile')}><SubMenuItem icon={<User size={18}/>} title="Personal Data" active={activeTab === 'profile'} /></div>
-              <SubMenuItem icon={<BarChart2 size={18}/>} title="Trading History" />
-            </div>
-          )}
-
-          {/* --- E. SUPPORT DRAWER --- */}
-      {/* --- SUPPORT SUBMENU --- */}
-{activeMenu === 'support' && (
-  <div className="flex flex-col h-full animate-in fade-in duration-300">
-    {/* Header with Back Button */}
-    <div className="h-16 flex items-center px-4 border-b border-gray-800">
-      <button 
-        onClick={() => setActiveMenu(null)} 
-        className="flex items-center text-gray-400 hover:text-white transition gap-2 text-xs font-bold uppercase tracking-wider"
-      >
-        <ChevronLeft size={16} /> Back
-      </button>
+{/* --- D. PROFILE DRAWER --- */}
+{activeMenu === 'profile' && (
+  <div className="flex flex-col h-full p-4">
+    <div className="bg-[#2a2e39] p-6 rounded-lg text-center mb-6">
+      <div className="w-16 h-16 bg-gray-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+        <User size={32} className="text-gray-300"/>
+      </div>
+      <h3 className="text-white font-bold">User 50032</h3>
+      <p className="text-green-500 font-bold">$0.00</p>
+      <button onClick={() => handleSubItemClick('deposit')} className="mt-4 w-full bg-green-600 text-white text-xs py-2 rounded font-bold">Deposit</button>
     </div>
 
-    <div className="p-4 flex flex-col gap-2">
-      {/* 1. My Requests click hone par support page khulega */}
-      <div onClick={() => handleSubItemClick('support')}>
-        <SubMenuItem 
-          icon={<MessageSquare size={18}/>} 
-          title="My Requests" 
-          active={activeTab === 'support'} 
-        />
-      </div>
-
-      {/* 2. Create Request click hone par bhi support page khulega */}
-      <div onClick={() => handleSubItemClick('support')}>
-        <SubMenuItem 
-          icon={<FileText size={18}/>} 
-          title="Create Request" 
-          active={activeTab === 'support'}
-        />
-      </div>
-
-      {/* 3. FAQ click par (Agar aap FAQ page alag banana chahte ho toh yahan tab change kar sakte ho) */}
-      <div onClick={() => handleSubItemClick('support')}>
-        <SubMenuItem 
-          icon={<HelpCircle size={18}/>} 
-          title="FAQ" 
-          active={activeTab === 'support'}
-        />
-      </div>
+    <div onClick={() => handleSubItemClick('profile')}>
+      <SubMenuItem icon={<User size={18}/>} title="Personal Data" active={activeTab === 'profile'} />
     </div>
+
+    <SubMenuItem icon={<BarChart2 size={18}/>} title="Trading History" />
+
+    <button
+      onClick={handleLogout}
+      className="mt-6 bg-red-600 text-white text-sm py-2 rounded-lg font-bold hover:bg-red-700 transition"
+    >
+      Logout
+    </button>
   </div>
 )}
 
@@ -210,7 +201,7 @@ const SidebarLeft = ({ setActiveTab, activeTab }) => {
   );
 };
 
-// --- HELPER COMPONENTS ---
+// --- HELPER COMPONENTS (No changes below) ---
 
 const MainIcon = ({ icon, label, isActive, onClick }) => (
     <div onClick={onClick} className={`relative group flex flex-col items-center justify-center p-3 rounded-xl cursor-pointer transition-all duration-200 ${isActive ? 'bg-[#2a2e39] text-white' : 'text-gray-500 hover:text-white hover:bg-[#1f1d1c]'}`}>

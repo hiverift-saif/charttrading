@@ -55,7 +55,7 @@ const TradeMarkets = () => {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden w-full">
-      <style jsx>{`
+      <style >{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         * { box-sizing: border-box; }
