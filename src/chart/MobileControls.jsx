@@ -1,65 +1,192 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setTradeAmount } from '../redux/tradingSlice';
-import { TrendingUp, TrendingDown, Clock, Plus, Minus, ChevronUp } from 'lucide-react';
+import { 
+  addOpenTrade, 
+  setTradeAmount, 
+  setBalance,           // ← Added
+  updateDemoBalance,     // ← Added
+} from '../redux/tradingSlice';
+import { TrendingUp, TrendingDown, Plus, Minus, X, Loader2, Zap } from 'lucide-react';
+import { useTheme } from "../context/ThemeContext";
+import API_CONFIG from '../config';
 
 const MobileControls = () => {
+  const { darkMode } = useTheme();
   const dispatch = useDispatch();
-  const { tradeAmount, payoutPercentage, tradeTime } = useSelector((state) => state.trading);
-  const [showSettings, setShowSettings] = useState(false); // Toggle extra settings
+  const [isOpen, setIsOpen] = useState(false);
+  
+  // Added accountType and demoBalance
+  const { 
+    tradeAmount, 
+    payoutPercentage, 
+    currentAsset, 
+    currentPrice, 
+    balance, 
+    demoBalance,
+    accountType 
+  } = useSelector((state) => state.trading);
+
+  const [isPlacingTrade, setIsPlacingTrade] = useState(false);
+  const [placingDirection, setPlacingDirection] = useState('');
+  const [tradeTime, setTradeTime] = useState(1);
+  
+  const token = localStorage.getItem('access_token');
+  const profit = (tradeAmount * (payoutPercentage / 100)).toFixed(2);
+
+  // Current balance based on account type
+  const currentBalance = accountType === 'demo' ? demoBalance : balance;
+
+  const handleTrade = async (direction) => {
+    if (isPlacingTrade) return;
+    if (!token) return alert('Please login first!');
+    if (currentBalance < tradeAmount) return alert('Insufficient Balance!');
+
+    const apiDirection = direction === 'buy' ? 'up' : 'down';
+
+    setIsPlacingTrade(true);
+    setPlacingDirection(direction);
+
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/trade/open`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({
+          asset: currentAsset?.displayName?.split('/')[0] || 'BTC',
+          amount: Number(tradeAmount),
+          direction: apiDirection,
+          duration: tradeTime,
+          type: accountType === 'demo' ? "demoBalance" : "realBalance" // ← Important: correct type
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Add to open trades
+        dispatch(addOpenTrade({
+          id: result.tradeId || Date.now(),
+          symbol: currentAsset?.displayName?.split('/')[0],
+          quantity: tradeAmount,
+          type: direction, 
+          entryPrice: Number(currentPrice || 0),
+          profitPotential: profit,
+          expiryTime: new Date(Date.now() + tradeTime * 60000).toISOString(),
+        }));
+
+        // CRITICAL: Update balance locally immediately
+        const newBalance = currentBalance - tradeAmount;
+
+        if (accountType === 'demo') {
+          dispatch(updateDemoBalance(newBalance));
+        } else {
+          dispatch(setBalance(newBalance));
+        }
+
+        setIsOpen(false); // Close panel on success
+      } else {
+        alert(result.message || 'Trade failed!');
+      }
+    } catch (err) {
+      alert('Network error. Please try again.');
+    } finally {
+      setIsPlacingTrade(false);
+      setPlacingDirection('');
+    }
+  };
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#1e222d] border-t border-gray-800 z-50 flex flex-col pb-safe">
-      
-      {/* Expandable Settings (Time/Amount details) */}
-      {showSettings && (
-        <div className="bg-[#2a2e39] p-4 animate-slide-up border-b border-gray-700">
-           <div className="flex justify-between items-center mb-4">
-              <span className="text-gray-400 text-sm">Amount</span>
-              <div className="flex items-center gap-3">
-                 <button onClick={() => dispatch(setTradeAmount(tradeAmount > 1 ? tradeAmount - 1 : 1))} className="p-2 bg-gray-700 rounded"><Minus size={16}/></button>
-                 <span className="text-xl font-bold text-white">${tradeAmount}</span>
-                 <button onClick={() => dispatch(setTradeAmount(tradeAmount + 1))} className="p-2 bg-gray-700 rounded"><Plus size={16}/></button>
-              </div>
-           </div>
-           <div className="flex justify-between items-center">
-              <span className="text-gray-400 text-sm">Time</span>
-              <span className="text-white font-bold">{tradeTime}</span>
-           </div>
-        </div>
+    <div className="lg:hidden">
+      {/* Floating Trigger Button */}
+      {!isOpen && (
+        <button
+          onPointerDown={() => setIsOpen(true)}
+          className="fixed bottom-8 right-6 w-12 h-12 bg-gradient-to-tr from-[#f99616] to-[#ffae34] text-black rounded-full shadow-[0_8px_20px_rgba(249,150,22,0.4)] z-[9999] flex items-center justify-center active:scale-90 transition-all border-2 border-white/20"
+        >
+          <Zap size={20} fill="currentColor" />
+        </button>
       )}
 
-      {/* Main Bottom Bar */}
-      <div className="flex items-center px-2 py-2 gap-2 h-16">
-        
-        {/* Toggle Settings Button */}
-        <div 
-            onClick={() => setShowSettings(!showSettings)}
-            className="flex flex-col items-center justify-center bg-[#2a2e39] rounded px-2 py-1 h-full min-w-[70px] cursor-pointer"
-        >
-            <div className="flex items-center gap-1 text-white font-bold text-sm">
-                ${tradeAmount} <ChevronUp size={14} className={`transition ${showSettings ? 'rotate-180' : ''}`}/>
+      {/* Mobile Trade Panel */}
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[9998]" onClick={() => setIsOpen(false)} />
+          
+          <div className={`fixed bottom-6 left-4 right-4 rounded-[24px] border transition-all duration-300 z-[9999] shadow-2xl animate-in slide-in-from-bottom-5
+            ${darkMode ? "bg-[#121212]/95 border-white/10" : "bg-white/95 border-gray-200"}`}>
+            
+            <div className="flex justify-between items-center px-5 py-3 border-b border-white/5">
+              <span className="text-[10px] font-black uppercase tracking-[2px] text-gray-500">Quick Execute</span>
+              <button onClick={() => setIsOpen(false)} className="p-1 text-gray-500 hover:text-white">
+                <X size={18} />
+              </button>
             </div>
-            <div className="text-[10px] text-gray-400">{tradeTime}</div>
-        </div>
 
-        {/* Profit Info */}
-        <div className="flex flex-col items-center justify-center px-1 min-w-[50px]">
-             <span className="text-green-500 font-bold text-xs">{payoutPercentage}%</span>
-        </div>
+            <div className="p-5 space-y-4">
+              <div className="flex gap-3">
+                {/* Amount */}
+                <div className={`flex-1 p-2 rounded-2xl border ${darkMode ? "bg-white/5 border-white/5" : "bg-gray-50 border-gray-100"}`}>
+                  <p className="text-[8px] font-bold text-gray-400 uppercase text-center mb-1">Amount</p>
+                  <div className="flex items-center justify-between px-1">
+                    <button onPointerDown={() => dispatch(setTradeAmount(Math.max(1, tradeAmount - 1)))} className="text-[#f99616]">
+                      <Minus size={14}/>
+                    </button>
+                    <span className="font-black text-sm">${tradeAmount}</span>
+                    <button onPointerDown={() => dispatch(setTradeAmount(tradeAmount + 1))} className="text-[#f99616]">
+                      <Plus size={14}/>
+                    </button>
+                  </div>
+                </div>
 
-        {/* ACTION BUTTONS (Big) */}
-        <button className="flex-1 bg-[#2cac40] active:bg-[#259136] text-white h-full rounded flex items-center justify-center gap-1 shadow-lg transition-transform active:scale-95">
-            <TrendingUp size={20} />
-            <span className="font-bold uppercase text-sm">Call</span>
-        </button>
+                {/* Time */}
+                <div className={`flex-1 p-2 rounded-2xl border ${darkMode ? "bg-white/5 border-white/5" : "bg-gray-50 border-gray-100"}`}>
+                  <p className="text-[8px] font-bold text-gray-400 uppercase text-center mb-1">Time</p>
+                  <div className="flex items-center justify-between px-1">
+                    <button onPointerDown={() => setTradeTime(Math.max(1, tradeTime - 1))} className="text-blue-400">
+                      <Minus size={14}/>
+                    </button>
+                    <span className="font-black text-sm">{tradeTime}m</span>
+                    <button onPointerDown={() => setTradeTime(tradeTime + 1)} className="text-blue-400">
+                      <Plus size={14}/>
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-        <button className="flex-1 bg-[#db4931] active:bg-[#b83d29] text-white h-full rounded flex items-center justify-center gap-1 shadow-lg transition-transform active:scale-95">
-            <TrendingDown size={20} />
-            <span className="font-bold uppercase text-sm">Put</span>
-        </button>
+              {/* Buy / Sell Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onPointerDown={() => handleTrade('buy')}
+                  disabled={isPlacingTrade || currentBalance < tradeAmount}
+                  className="flex-1 h-14 bg-[#00c853] hover:bg-[#00e676] disabled:opacity-60 text-white rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-green-500/20 font-black uppercase text-xs tracking-wider"
+                >
+                  {isPlacingTrade && placingDirection === 'buy' ? <Loader2 className="animate-spin" size={18}/> : <><TrendingUp size={18} strokeWidth={3}/> Call</>}
+                </button>
 
-      </div>
+                <button
+                  onPointerDown={() => handleTrade('sell')}
+                  disabled={isPlacingTrade || currentBalance < tradeAmount}
+                  className="flex-1 h-14 bg-[#ff3d00] hover:bg-[#ff6e40] disabled:opacity-60 text-white rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-red-500/20 font-black uppercase text-xs tracking-wider"
+                >
+                  {isPlacingTrade && placingDirection === 'sell' ? <Loader2 className="animate-spin" size={18}/> : <><TrendingDown size={18} strokeWidth={3}/> Put</>}
+                </button>
+              </div>
+
+              {/* Profit & Payout Info */}
+              <div className="flex justify-between items-center pt-1 px-1">
+                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                  Profit: <span className="text-green-500">+${profit}</span>
+                </span>
+                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                  Payout: {payoutPercentage}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

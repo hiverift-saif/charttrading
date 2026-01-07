@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Check,Target ,Trophy ,Globe  } from "lucide-react";
+import { Check, Target, Trophy, Globe } from "lucide-react";
+import { useTheme } from "../context/ThemeContext"; // Context Import
 
 const platformsData = [
   {
@@ -29,20 +30,22 @@ const platformsData = [
 ];
 
 export default function DownloadAccessibility() {
+  const { darkMode } = useTheme(); // Theme Hook
   const [active, setActive] = useState(0);
 
-  // STYLE FOR GRID BACKGROUND ON CARDS
+  // STYLE FOR GRID BACKGROUND (Dynamic colors for dots/lines)
   const gridCardStyle = {
-    backgroundColor: "#000000",
-    backgroundImage: `
-      linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), 
-      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)
-    `,
+    backgroundColor: darkMode ? "#000000" : "#ffffff",
+    backgroundImage: darkMode 
+      ? `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`
+      : `linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)`,
     backgroundSize: "30px 30px",
   };
 
   return (
-    <section className="w-full bg-black py-12 md:py-24 font-sans relative overflow-hidden">
+    <section className={`w-full py-12 md:py-24 font-sans relative overflow-hidden transition-colors duration-500 
+      ${darkMode ? "bg-black" : "bg-white"}`}>
+      
       <div className="container mx-auto px-4 md:px-8 max-w-7xl">
         {/* UPPER SECTION (Phone + Text) */}
         <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16 mb-12 lg:mb-20">
@@ -52,7 +55,7 @@ export default function DownloadAccessibility() {
             <img
               src="https://july.finestwp.com/newwp/tradebro/wp-content/uploads/2024/12/platforms-v1-shape11.png"
               alt=""
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 w-[130%] max-w-none pointer-events-none opacity-80"
+              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 w-[130%] max-w-none pointer-events-none transition-opacity ${darkMode ? "opacity-80" : "opacity-20"}`}
             />
             {/* Main Phone */}
             <div className="relative z-10 animate-float">
@@ -67,16 +70,13 @@ export default function DownloadAccessibility() {
           {/* RIGHT: CONTENT */}
           <div className="w-full lg:w-1/2 space-y-6 md:space-y-8 relative z-20">
             <div>
-              <span className="bg-[#50fa7b] text-black px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[10px] md:text-[11px] font-bold uppercase tracking-wider ">
-                TOURNAMENTS{" "}
+              <span className="bg-[#f99616] text-black px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[10px] md:text-[11px] font-bold uppercase tracking-wider ">
+                TOURNAMENTS
               </span>
             </div>
 
-            <h2 className="text-3xl md:text-5xl font-bold font-nunito-custom font-heading text-white leading-tight">
-              Compete, Trade,
-              <br />
-              and Win Big <br />
-              Rewards.
+            <h2 className={`text-3xl md:text-5xl font-bold font-nunito-custom font-heading leading-tight transition-colors ${darkMode ? "text-white" : "text-black"}`}>
+              Compete, Trade, <br /> and Win Big <br /> Rewards.
             </h2>
             
             {/* TABS */}
@@ -87,14 +87,14 @@ export default function DownloadAccessibility() {
                   onClick={() => setActive(i)}
                   className={`flex items-center gap-2 md:gap-3 px-4 py-3 md:px-6 md:py-4 rounded-xl border transition-all duration-300 ${
                     active === i
-                      ? "bg-zinc-900 border-[#50fa7b]"
-                      : "bg-transparent border-white/10 hover:border-white/20"
+                      ? (darkMode ? "bg-zinc-900 border-[#f99616]" : "bg-gray-100 border-[#f99616]")
+                      : (darkMode ? "bg-transparent border-white/10 hover:border-white/20" : "bg-transparent border-gray-200 hover:border-gray-300")
                   }`}
                 >
                   <div
                     className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center ${
                       active === i
-                        ? "bg-[#50fa7b] text-black"
+                        ? "bg-[#f99616] text-black"
                         : "bg-zinc-800 text-slate-400"
                     }`}
                   >
@@ -103,7 +103,7 @@ export default function DownloadAccessibility() {
                   <div className="text-left">
                     <span
                       className={`block text-xs md:text-sm font-bold ${
-                        active === i ? "text-white" : "text-slate-400"
+                        active === i ? (darkMode ? "text-white" : "text-black") : "text-slate-400"
                       }`}
                     >
                       {p.short}
@@ -113,7 +113,7 @@ export default function DownloadAccessibility() {
               ))}
             </div>
             
-            <p className="text-slate-400 text-sm md:text-lg leading-relaxed">
+            <p className={`text-sm md:text-lg leading-relaxed transition-colors ${darkMode ? "text-slate-400" : "text-gray-600"}`}>
               {platformsData[active].info}
             </p>
             
@@ -121,9 +121,9 @@ export default function DownloadAccessibility() {
               {platformsData[active].features.map((feature, index) => (
                 <li
                   key={index}
-                  className="flex items-center gap-3 text-slate-300 font-medium text-sm md:text-base"
+                  className={`flex items-center gap-3 font-medium text-sm md:text-base transition-colors ${darkMode ? "text-slate-300" : "text-gray-700"}`}
                 >
-                  <span className="text-[#50fa7b]">
+                  <span className="text-[#f99616]">
                     <svg
                       width="14"
                       height="14"
@@ -141,110 +141,109 @@ export default function DownloadAccessibility() {
           </div>
         </div>
 
-        {/* ====================================================
-            BOTTOM SECTION: GRID CARDS (TEXT ONLY & SHORT)
-{/* ====================================================
-    BOTTOM SECTION: ENHANCED GRID CARDS
-===================================================== */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-20">
-  
-  {/* CARD 1: RISE HIGHER */}
-  <div
-    className="relative overflow-hidden rounded-2xl p-6 md:p-8 border border-white/10 hover:border-[#50fa7b]/30 transition-all duration-300 group flex flex-col justify-center min-h-[180px]"
-    style={gridCardStyle}
-  >
-    {/* Side Decorative Neon Lines */}
-    <div className="absolute left-0 top-1/4 bottom-1/4 w-[2px] bg-[#50fa7b] opacity-60 group-hover:h-1/2 transition-all duration-500" />
-    <div className="absolute left-[4px] top-1/3 bottom-1/3 w-[1px] bg-[#50fa7b] opacity-20" />
+        {/* BOTTOM SECTION: GRID CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-20">
+          
+          {/* CARD 1: RISE HIGHER */}
+          <div
+            className={`relative overflow-hidden rounded-2xl p-6 md:p-8 border transition-all duration-300 group flex flex-col justify-center min-h-[180px] 
+              ${darkMode ? "border-white/10 hover:border-[#f99616]/30 shadow-none" : "border-gray-200 hover:border-[#f99616]/50 shadow-sm"}`}
+            style={gridCardStyle}
+          >
+            <div className="absolute left-0 top-1/4 bottom-1/4 w-[2px] bg-[text-[#50fa7b]] opacity-60 group-hover:h-1/2 transition-all duration-500" />
+            <div className="absolute left-[4px] top-1/3 bottom-1/3 w-[1px] bg-[#f99616] opacity-20" />
 
-    <div className="flex items-start gap-5">
-      {/* Icon */}
-      <div className="flex-shrink-0 p-3 rounded-xl bg-white/5 border border-white/10 text-[#50fa7b] group-hover:scale-110 transition-transform">
-        <Target size={28} />
-      </div>
+            <div className="flex items-start gap-5">
+              <div className={`flex-shrink-0 p-3 rounded-xl border transition-transform group-hover:scale-110 
+                ${darkMode ? "bg-white/5 border-white/10 text-[text-[#50fa7b]]" : "bg-gray-50 border-gray-200 text-[#f99616]"}`}>
+                <Target size={28} />
+              </div>
 
-      {/* Content */}
-      <div className="space-y-2">
-        <h3 className="text-white font-bold text-xl md:text-2xl font-moderustic tracking-tight">
-          Rise Higher
-        </h3>
-        <ul className="space-y-1.5">
-          <li className="flex items-center gap-2 text-slate-400 text-sm font-medium">
-            <div className="w-1 h-1 rounded-full bg-[#50fa7b]" />
-            Climb daily leaderboards
-          </li>
-          <li className="flex items-center gap-2 text-slate-400 text-sm font-medium">
-            <div className="w-1 h-1 rounded-full bg-[#50fa7b]" />
-            Dominate global rankings
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
+              <div className="space-y-2">
+                <h3 className={`font-bold text-xl md:text-2xl font-moderustic tracking-tight transition-colors ${darkMode ? "text-white" : "text-black"}`}>
+                  Rise Higher
+                </h3>
+                <ul className="space-y-1.5">
+                  <li className={`flex items-center gap-2 text-sm font-medium transition-colors ${darkMode ? "text-slate-400" : "text-gray-500"}`}>
+                    <div className="w-1 h-1 rounded-full bg-[#f99616]" />
+                    Climb daily leaderboards
+                  </li>
+                  <li className={`flex items-center gap-2 text-sm font-medium transition-colors ${darkMode ? "text-slate-400" : "text-gray-500"}`}>
+                    <div className="w-1 h-1 rounded-full bg-[#f99616]" />
+                    Dominate global rankings
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
 
-  {/* CARD 2: GRAB REWARDS */}
-  <div
-    className="relative overflow-hidden rounded-2xl p-6 md:p-8 border border-white/10 hover:border-[#50fa7b]/30 transition-all duration-300 group flex flex-col justify-center min-h-[180px]"
-    style={gridCardStyle}
-  >
-    <div className="absolute left-0 top-1/4 bottom-1/4 w-[2px] bg-[#50fa7b] opacity-60 group-hover:h-1/2 transition-all duration-500" />
-    <div className="absolute left-[4px] top-1/3 bottom-1/3 w-[1px] bg-[#50fa7b] opacity-20" />
+          {/* CARD 2: GRAB REWARDS */}
+          <div
+            className={`relative overflow-hidden rounded-2xl p-6 md:p-8 border transition-all duration-300 group flex flex-col justify-center min-h-[180px]
+              ${darkMode ? "border-white/10 hover:border-[#50fa7b]/30 shadow-none" : "border-gray-200 hover:border-[#50fa7b]/50 shadow-sm"}`}
+            style={gridCardStyle}
+          >
+            <div className="absolute left-0 top-1/4 bottom-1/4 w-[2px] bg-[#f99616] opacity-60 group-hover:h-1/2 transition-all duration-500" />
+            <div className="absolute left-[4px] top-1/3 bottom-1/3 w-[1px] bg-[#f99616] opacity-20" />
 
-    <div className="flex items-start gap-5">
-      <div className="flex-shrink-0 p-3 rounded-xl bg-white/5 border border-white/10 text-[#50fa7b] group-hover:scale-110 transition-transform">
-        <Trophy size={28} />
-      </div>
+            <div className="flex items-start gap-5">
+              <div className={`flex-shrink-0 p-3 rounded-xl border transition-transform group-hover:scale-110 
+                ${darkMode ? "bg-white/5 border-white/10 text-[#f99616]" : "bg-gray-50 border-gray-200 text-[#f99616]"}`}>
+                <Trophy size={28} />
+              </div>
 
-      <div className="space-y-2">
-        <h3 className="text-white font-bold text-xl md:text-2xl tracking-tight">
-          Grab Rewards
-        </h3>
-        <ul className="space-y-1.5">
-          <li className="flex items-center gap-2 text-slate-400 text-sm font-medium">
-            <div className="w-1 h-1 rounded-full bg-[#50fa7b]" />
-            Unlock exclusive bonuses
-          </li>
-          <li className="flex items-center gap-2 text-slate-400 text-sm font-medium">
-            <div className="w-1 h-1 rounded-full bg-[#50fa7b]" />
-            Win massive cash prizes
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
+              <div className="space-y-2">
+                <h3 className={`font-bold text-xl md:text-2xl tracking-tight transition-colors ${darkMode ? "text-white" : "text-black"}`}>
+                  Grab Rewards
+                </h3>
+                <ul className="space-y-1.5">
+                  <li className={`flex items-center gap-2 text-sm font-medium transition-colors ${darkMode ? "text-slate-400" : "text-gray-500"}`}>
+                    <div className="w-1 h-1 rounded-full bg-[#f99616]" />
+                    Unlock exclusive bonuses
+                  </li>
+                  <li className={`flex items-center gap-2 text-sm font-medium transition-colors ${darkMode ? "text-slate-400" : "text-gray-500"}`}>
+                    <div className="w-1 h-1 rounded-full bg-[#f99616]" />
+                    Win massive cash prizes
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
 
-  {/* CARD 3: EARN GLORY */}
-  <div
-    className="relative overflow-hidden rounded-2xl p-6 md:p-8 border border-white/10 hover:border-[#50fa7b]/30 transition-all duration-300 group flex flex-col justify-center min-h-[180px]"
-    style={gridCardStyle}
-  >
-    <div className="absolute left-0 top-1/4 bottom-1/4 w-[2px] bg-[#50fa7b] opacity-60 group-hover:h-1/2 transition-all duration-500" />
-    <div className="absolute left-[4px] top-1/3 bottom-1/3 w-[1px] bg-[#50fa7b] opacity-20" />
+          {/* CARD 3: EARN GLORY */}
+          <div
+            className={`relative overflow-hidden rounded-2xl p-6 md:p-8 border transition-all duration-300 group flex flex-col justify-center min-h-[180px]
+              ${darkMode ? "border-white/10 hover:border-[#f99616]/30 shadow-none" : "border-gray-200 hover:border-[#f99616]/50 shadow-sm"}`}
+            style={gridCardStyle}
+          >
+            <div className="absolute left-0 top-1/4 bottom-1/4 w-[2px] bg-[#f99616] opacity-60 group-hover:h-1/2 transition-all duration-500" />
+            <div className="absolute left-[4px] top-1/3 bottom-1/3 w-[1px] bg-[#f99616] opacity-20" />
 
-    <div className="flex items-start gap-5">
-      <div className="flex-shrink-0 p-3 rounded-xl bg-white/5 border border-white/10 text-[#50fa7b] group-hover:scale-110 transition-transform">
-        <Globe size={28} />
-      </div>
+            <div className="flex items-start gap-5">
+              <div className={`flex-shrink-0 p-3 rounded-xl border transition-transform group-hover:scale-110 
+                ${darkMode ? "bg-white/5 border-white/10 text-[#f99616]" : "bg-gray-50 border-gray-200 text-[#f99616]"}`}>
+                <Globe size={28} />
+              </div>
 
-      <div className="space-y-2">
-        <h3 className="text-white font-bold text-xl md:text-2xl tracking-tight">
-          Earn Glory
-        </h3>
-        <ul className="space-y-1.5">
-          <li className="flex items-center gap-2 text-slate-400 text-sm font-medium">
-            <div className="w-1 h-1 rounded-full bg-[#50fa7b]" />
-            Global skill recognition
-          </li>
-          <li className="flex items-center gap-2 text-slate-400 text-sm font-medium">
-            <div className="w-1 h-1 rounded-full bg-[#50fa7b]" />
-            Showcase to elite community
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
+              <div className="space-y-2">
+                <h3 className={`font-bold text-xl md:text-2xl tracking-tight transition-colors ${darkMode ? "text-white" : "text-black"}`}>
+                  Earn Glory
+                </h3>
+                <ul className="space-y-1.5">
+                  <li className={`flex items-center gap-2 text-sm font-medium transition-colors ${darkMode ? "text-slate-400" : "text-gray-500"}`}>
+                    <div className="w-1 h-1 rounded-full bg-[#f99616]" />
+                    Global skill recognition
+                  </li>
+                  <li className={`flex items-center gap-2 text-sm font-medium transition-colors ${darkMode ? "text-slate-400" : "text-gray-500"}`}>
+                    <div className="w-1 h-1 rounded-full bg-[#f99616]" />
+                    Showcase to elite community
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
 
-</div>
+        </div>
       </div>
     </section>
   );
