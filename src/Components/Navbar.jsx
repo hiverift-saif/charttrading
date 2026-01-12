@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Menu, MessageSquare, ChevronDown, X, Search, Check, Sun, Moon, UserPlus, LogIn } from "lucide-react";
 import MobileMenu from "./MobileMenu";
 import { Link, useLocation } from "react-router-dom";
-import logo from "../assets/Logo.png";
+import logo from "../assets/logo.png";
 import { useTheme } from "../context/ThemeContext";
 
 const allLanguages = [
