@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext"; // 🚀 Theme support
-import logo from "../assets/Logo.png"; // 🚀 Logo for better branding
+import logo from "../assets/logo.png"; // 🚀 Logo for better branding
 
 export default function BeginnerGuides() {
   const { darkMode } = useTheme();
