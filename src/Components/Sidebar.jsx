@@ -39,7 +39,7 @@ const Sidebar = () => {
         });
         const data = await response.json();
         if (response.ok) {
-          localStorage.setItem('access_token', data.access_token);
+          localStorage.setItem('access_token', data?.result?.accessToken);
           localStorage.setItem('user_name', data.user?.name || "Trader");
           localStorage.setItem('user_email', loginEmail); 
           window.location.href = '/trading';
