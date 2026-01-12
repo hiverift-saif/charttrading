@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { ChevronDown, Info, Minus, Plus, Send, History, X, Delete } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addOpenTrade, setBalance, updateDemoBalance } from '../redux/tradingSlice'; // Added balance actions
+import { addOpenTrade, setBalance, updateDemoBalance, setSyncing } from '../redux/tradingSlice'; 
 import { useTheme } from "../context/ThemeContext";
 import API_CONFIG from '../config';
 
@@ -9,7 +9,6 @@ const TradePanel = () => {
   const { darkMode } = useTheme();
   const dispatch = useDispatch();
   
-  // Added accountType, demoBalance
   const { 
     currentAsset, 
     currentPrice, 
@@ -22,30 +21,32 @@ const TradePanel = () => {
   const [amount, setAmount] = useState(10);
   const [time, setTime] = useState('00:01:00');
   const [showKeypad, setShowKeypad] = useState(false);
-  
   const [isPlacingTrade, setIsPlacingTrade] = useState(false);
   const [placingDirection, setPlacingDirection] = useState(''); 
-
   const [tradeError, setTradeError] = useState('');
 
   const tradeLock = useRef(false);
   const token = localStorage.getItem('access_token');
-
+console.log("jdsbdabk", token)
   const profit = (amount * (payoutPercentage / 100)).toFixed(2);
   const totalReturn = (Number(amount) + Number(profit)).toFixed(2);
-
-  // Get current balance based on account type
   const currentBalance = accountType === 'demo' ? demoBalance : balance;
 
   const placeTrade = async (direction) => {
-    const apiDirection = direction === 'buy' ? 'up' : 'down';
     if (tradeLock.current) return;
+    console.log("placetrade", token)
+    // 🚀 STEP 1: Syncing Lock ON
+    dispatch(setSyncing(true)); 
+
+    const apiDirection = direction === 'buy' ? 'up' : 'down';
     if (!token) {
       setTradeError('Session expired. Please login again.');
+      dispatch(setSyncing(false));
       return;
     }
     if (currentBalance < amount) {
       setTradeError('Insufficient Balance!');
+      dispatch(setSyncing(false));
       return;
     }
 
@@ -58,7 +59,7 @@ const TradePanel = () => {
       asset: currentAsset?.displayName?.split('/')[0] || 'BTC',
       amount: Number(amount),
       direction: apiDirection,
-      type: accountType === 'demo' ? "demoBalance" : "realBalance" // Important: send correct type
+      type: accountType === 'demo' ? "demoBalance" : "realBalance"
     };
 
     try {
@@ -74,7 +75,7 @@ const TradePanel = () => {
       const result = await response.json();
 
       if (response.ok) {
-        // Add trade to open trades
+        // Redux local updates
         dispatch(addOpenTrade({
           id: result.tradeId || Date.now(),
           symbol: tradeData.asset,
@@ -85,7 +86,6 @@ const TradePanel = () => {
           expiryTime: new Date(Date.now() + 60000).toISOString(),
         }));
 
-        // CRITICAL FIX: Update local balance immediately
         const newBalance = currentBalance - amount;
         if (accountType === 'demo') {
           dispatch(updateDemoBalance(newBalance));
@@ -94,11 +94,19 @@ const TradePanel = () => {
         }
 
         setShowKeypad(false);
+
+        // 🚀 STEP 2: Wait for 5 sec then Syncing OFF
+        setTimeout(() => {
+          dispatch(setSyncing(false));
+        }, 5000);
+
       } else {
         setTradeError(result.message || 'Trade failed.');
+        dispatch(setSyncing(false));
       }
     } catch (err) {
       setTradeError('Network error. Please try again.');
+      dispatch(setSyncing(false));
     } finally {
       tradeLock.current = false;
       setIsPlacingTrade(false);
@@ -121,12 +129,11 @@ const TradePanel = () => {
       setAmount((prev) => Number(prev === 10 ? val : prev.toString() + val));
     }
   };
-
+console.log("testingwallet", isPlacingTrade  ,token , currentBalance , amount)
   return (
     <div className={`flex-1 flex flex-col p-3 gap-3 overflow-y-auto no-scrollbar relative h-full transition-colors duration-500
       ${darkMode ? "bg-black" : "bg-white"}`}>
       
-      {/* Rest of your UI remains exactly the same */}
       <div className={`flex items-center justify-between p-3 rounded-lg border transition-colors
         ${darkMode ? "bg-black border-gray-800" : "bg-gray-50 border-gray-200 shadow-sm"}`}>
         <div className="flex items-center gap-2">
@@ -142,9 +149,6 @@ const TradePanel = () => {
         </div>
         <ChevronDown size={14} className="text-gray-500" />
       </div>
-
-      {/* Time, Amount, Payout, Buttons, Keypad - all same as before */}
-      {/* ... (your existing JSX unchanged) ... */}
 
       <div className={`border rounded-lg overflow-hidden transition-colors ${darkMode ? "bg-black border-gray-800" : "bg-white border-gray-200 shadow-sm"}`}>
         <div className={`p-3 text-center border-b transition-colors ${darkMode ? "border-gray-800" : "border-gray-100"}`}>

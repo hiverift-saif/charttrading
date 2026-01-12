@@ -60,7 +60,6 @@ useEffect(() => {
         }
 
       } catch (err) {
-        console.error("System Check Error:", err);
         // Agar main API call hi fail ho gayi (Network Error / 500)
         setDbStatus('down');
         setIsApiDown(true);

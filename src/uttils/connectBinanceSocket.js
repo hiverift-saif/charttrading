@@ -8,12 +8,10 @@ export const connectBinanceSocket = (symbol, onPrice) => {
 
   const url = `wss://stream.binance.com:9443/ws/${cleanSymbol}@trade`;
 
-  console.log("🔌 Connecting:", url);
 
   const ws = new WebSocket(url);
 
   ws.onopen = () => {
-    console.log("✅ Binance WS connected");
   };
 
   ws.onmessage = (event) => {

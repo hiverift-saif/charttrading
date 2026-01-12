@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
-import { useTheme } from "../context/ThemeContext"; // Context Import
+import { useTheme } from "../context/ThemeContext"; 
 
 export default function FAQSection() {
-  const { darkMode } = useTheme(); // Theme Hook
+  const { darkMode } = useTheme(); 
   const [activeTab, setActiveTab] = useState('1');
   const [openAccordion, setOpenAccordion] = useState(null);
 
@@ -154,9 +154,9 @@ export default function FAQSection() {
       
       <div className="container mx-auto px-4 max-w-7xl">
 
-        <h2 className={`text-xl md:text-3xl font-bold mb-6 md:mb-8 flex justify-center items-center font-nunito-custom uppercase text-center pb-6 md:pb-10 transition-colors
+        <h2 className={`text-xl md:text-3xl font-black italic mb-6 md:mb-8 flex justify-center items-center font-nunito-custom uppercase text-center pb-6 md:pb-10 transition-colors
           ${darkMode ? "text-white" : "text-black"}`}>
-          {currentTab.title} FAQs
+          {currentTab.title} <span className="text-[#f99616] ml-2">FAQs</span>
         </h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8">
@@ -173,11 +173,11 @@ export default function FAQSection() {
                   }}
                   className={`
                     whitespace-nowrap flex-shrink-0 lg:flex-shrink lg:whitespace-normal
-                    cursor-pointer rounded-lg md:rounded-xl px-3 py-2 md:px-5 md:py-3 lg:p-5 flex items-center gap-2 md:gap-3 justify-between transition-all duration-300 shadow-lg border text-xs md:text-base font-semibold
+                    cursor-pointer rounded-lg md:rounded-xl px-3 py-2 md:px-5 md:py-3 lg:p-5 flex items-center gap-2 md:gap-3 justify-between transition-all duration-300 shadow-lg border text-xs md:text-base font-bold uppercase italic
                     ${
                       activeTab === tab.id
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-blue-500'
-                        : (darkMode ? 'bg-gray-900 text-gray-300 border-gray-800 hover:bg-gray-800' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100')
+                        ? 'bg-[#f99616] text-white border-[#f99616] shadow-orange-500/20'
+                        : (darkMode ? 'bg-[#0d0d0d] text-gray-400 border-gray-800 hover:border-[#f99616]/50' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-[#f99616]')
                     }
                   `}
                 >
@@ -190,32 +190,32 @@ export default function FAQSection() {
 
           {/* Right Content - FAQs */}
           <div className="lg:col-span-9">
-            <div className={`rounded-xl md:rounded-2xl shadow-2xl p-3 md:p-8 lg:p-10 border transition-colors
-              ${darkMode ? "bg-gray-900 border-gray-800" : "bg-gray-50 border-gray-200"}`}>
+            <div className={`rounded-xl md:rounded-[2.5rem] shadow-2xl p-3 md:p-8 lg:p-10 border transition-colors
+              ${darkMode ? "bg-[#0d0d0d] border-gray-800" : "bg-gray-50 border-gray-200"}`}>
               
               <div className="space-y-3 md:space-y-4 font-nunito-custom">
                 {currentTab.faqs.map((faq, index) => (
                   <div
                     key={index}
-                    className={`border rounded-lg md:rounded-xl overflow-hidden transition-all duration-300 hover:border-blue-500 hover:shadow-xl
-                      ${darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}
+                    className={`border rounded-xl md:rounded-2xl overflow-hidden transition-all duration-300 hover:border-[#f99616] hover:shadow-orange-500/5
+                      ${darkMode ? "bg-black border-gray-800" : "bg-white border-gray-100"}`}
                   >
                     <button
                       onClick={() => toggleAccordion(index)}
                       className="w-full px-3 py-3 md:px-6 md:py-5 text-left flex items-start md:items-center justify-between transition-colors gap-3 md:gap-4"
                     >
                       <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 w-full">
-                        <span className={`text-[10px] md:text-sm font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded w-fit whitespace-nowrap
-                          ${darkMode ? "text-blue-400 bg-blue-400/10" : "text-blue-600 bg-blue-50"}`}>
-                          Q/A {index + 1}
+                        <span className={`text-[10px] md:text-[11px] font-black uppercase italic px-2 py-1 rounded w-fit whitespace-nowrap
+                          ${darkMode ? "text-[#f99616] bg-[#f99616]/10" : "text-white bg-[#f99616]"}`}>
+                          Q {index + 1}
                         </span>
-                        <h3 className={`text-sm md:text-lg font-medium leading-snug transition-colors
+                        <h3 className={`text-sm md:text-base font-black uppercase italic tracking-tighter leading-snug transition-colors
                           ${darkMode ? "text-white" : "text-slate-900"}`}>
                           {faq.question}
                         </h3>
                       </div>
                       <ChevronDown
-                        className={`w-4 h-4 md:w-6 md:h-6 text-gray-400 transition-transform duration-300 flex-shrink-0 mt-0.5 md:mt-0 ${
+                        className={`w-4 h-4 md:w-6 md:h-6 text-[#f99616] transition-transform duration-300 flex-shrink-0 mt-0.5 md:mt-0 ${
                           openAccordion === index ? 'rotate-180' : ''
                         }`}
                       />
@@ -226,9 +226,9 @@ export default function FAQSection() {
                         openAccordion === index ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
                       }`}
                     >
-                      <div className={`px-3 pb-3 md:px-6 md:pb-6 pt-0 md:pt-2 border-t ${darkMode ? "border-gray-700/50" : "border-gray-100"}`}>
-                        <p className={`leading-relaxed text-xs md:text-base mt-2 md:mt-4 transition-colors
-                          ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                      <div className={`px-3 pb-3 md:px-6 md:pb-6 pt-0 md:pt-2 border-t ${darkMode ? "border-gray-800" : "border-gray-100"}`}>
+                        <p className={`leading-relaxed text-[10px] md:text-xs font-bold uppercase tracking-widest mt-2 md:mt-4 transition-colors
+                          ${darkMode ? "text-gray-500" : "text-gray-600"}`}>
                           {faq.answer}
                         </p>
                       </div>

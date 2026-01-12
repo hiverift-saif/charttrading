@@ -27,7 +27,6 @@ const PriceWebSocket = () => {
     };
 
     ws.onerror = () => {
-      console.log("WebSocket error");
     };
 
     return () => ws.close();

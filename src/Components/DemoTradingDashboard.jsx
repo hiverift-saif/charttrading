@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, ChevronDown } from "lucide-react";
+import { useTheme } from "../context/ThemeContext";
+import logo from "../assets/Logo.png";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -22,6 +24,7 @@ ChartJS.register(
 );
 
 export default function DemoTradingDashboard() {
+  const { darkMode } = useTheme();
   const [investment, setInvestment] = useState(null);
   const [tradeTime, setTradeTime] = useState(null);
   const [selectedAsset, setSelectedAsset] = useState(null);
@@ -33,6 +36,7 @@ export default function DemoTradingDashboard() {
   const investmentRef = useRef(null);
   const tradeRef = useRef(null);
   const balanceRef = useRef(null);
+  const guideRef = useRef(null);
 
   const assets = [
     { name: "EUR/USD OTC", percent: "92%" },
@@ -55,18 +59,28 @@ export default function DemoTradingDashboard() {
     "Demo completed!"
   ];
 
-useEffect(() => {
-const refs = [null, balanceRef, assetRef, timeRef, investmentRef, tradeRef];
-
-  if (refs[step] && refs[step].current) {
-    refs[step].current.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-}, [step]);
-
+  // 🚀 HIGH-PRECISION AUTO SCROLL LOGIC
+  useEffect(() => {
+    // Array matching guideSteps index to DOM refs
+    const refs = [guideRef, balanceRef, assetRef, timeRef, investmentRef, tradeRef, guideRef];
+    
+    if (refs[step] && refs[step].current) {
+      // 100ms delay for mobile browser rendering sync
+      const timer = setTimeout(() => {
+        refs[step].current.scrollIntoView({ 
+          behavior: "smooth", 
+          block: "center", // 🚀 Element ko screen ke center mein layega
+        });
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
 
   const selectAsset = (asset) => {
     setSelectedAsset(asset);
     setIsOpen(false);
+    // 🚀 Asset select karte hi agla step trigger
+    setTimeout(() => setStep(3), 500); 
   };
 
   const navigate = useNavigate();
@@ -87,7 +101,7 @@ const refs = [null, balanceRef, assetRef, timeRef, investmentRef, tradeRef];
     if (step > 0) setStep(step - 1);
   };
 
-  // Chart Data
+  // Chart Data & Options
   const chartRef = useRef(null);
   const [chartData, setChartData] = useState({
     labels: Array.from({ length: 50 }, (_, i) => i),
@@ -95,41 +109,35 @@ const refs = [null, balanceRef, assetRef, timeRef, investmentRef, tradeRef];
       {
         label: "Price",
         data: Array.from({ length: 50 }, () => Math.random() * 10 + 1),
-        borderColor: "#3b82f6",
-        backgroundColor: "rgba(59, 130, 246, 0.2)",
+        borderColor: "#f99616",
+        backgroundColor: "rgba(249, 150, 22, 0.2)",
         fill: true,
         tension: 0.2,
         pointRadius: 0,
       },
     ],
   });
-const [chartOptions, setChartOptions] = useState({
-  responsive: true,
-  maintainAspectRatio: false, // ✅ full width fix
-  plugins: {
-    legend: { display: false },
-    tooltip: { mode: "index", intersect: false },
-  },
-  scales: {
-    x: {
-      grid: { color: "rgba(255,255,255,0.1)" },
-      ticks: { color: "#9CA3AF" },
-    },
-    y: {
-      grid: { color: "rgba(255,255,255,0.1)" },
-      ticks: { color: "#9CA3AF" },
-    },
-  },
-});
 
+  const [chartOptions] = useState({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { mode: "index", intersect: false },
+    },
+    scales: {
+      x: { grid: { color: "rgba(128,128,128,0.1)" }, ticks: { display: false } },
+      y: { grid: { color: "rgba(128,128,128,0.1)" }, ticks: { color: "#9CA3AF" } },
+    },
+  });
 
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
     const ctx = chart.ctx;
     const gradient = ctx.createLinearGradient(0, 0, 0, chart.height);
-    gradient.addColorStop(0, "rgba(59, 130, 246, 0.5)");
-    gradient.addColorStop(1, "rgba(59, 130, 246, 0)");
+    gradient.addColorStop(0, "rgba(249, 150, 22, 0.4)");
+    gradient.addColorStop(1, "rgba(249, 150, 22, 0)");
     setChartData((prev) => ({
       ...prev,
       datasets: prev.datasets.map((dataset) => ({
@@ -137,154 +145,120 @@ const [chartOptions, setChartOptions] = useState({
         backgroundColor: gradient,
       })),
     }));
-  }, []);
+  }, [darkMode]);
+
+  // Styling for active highlight
+  const activeRing = "ring-4 ring-[#f99616] ring-offset-4 ring-offset-black shadow-[0_0_20px_rgba(249,150,22,0.5)] transition-all duration-500";
 
   return (
-    <div className="bg-black min-h-screen p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className={`${darkMode ? "bg-black" : "bg-gray-100"} min-h-screen p-2 md:p-4 transition-colors duration-500`}>
+      <div className="max-w-7xl mx-auto space-y-6 pb-32">
+        
         {/* Header */}
-        <div className="flex justify-between items-center bg-blackl p-4 rounded-lg shadow-lg">
-          <div className="flex items-center space-x-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-lg flex items-center justify-center shadow">
-              <span className="text-white font-bold text-lg">TP</span>
-            </div>
-            <span className="text-white font-bold text-2xl">Trade Pro Dashboard</span>
+        <div className={`flex justify-between items-center p-3 md:p-4 rounded-xl border ${darkMode ? "bg-[#0d0d0d] border-gray-800 shadow-2xl" : "bg-white border-gray-200 shadow-sm"}`}>
+          <div className="flex items-center space-x-2">
+            <img src={logo} alt="Logo" className={`w-28 md:w-44 h-auto object-contain ${darkMode ? "" : "brightness-0"}`} />
           </div>
-<div
-  ref={balanceRef}
-  className={`${step === 1 ? "ring-4 ring-blue-500 rounded-md" : ""} bg-gray-700 px-4 py-2 rounded-lg shadow text-green-400 font-semibold text-lg`}
->
-  $1000.00
-</div>
-
-
+          <div
+            ref={balanceRef}
+            className={`px-4 py-2 rounded-lg text-[#f99616] font-black text-lg transition-all ${step === 1 ? activeRing : ""}`}
+          >
+            $1000.00
+          </div>
         </div>
 
-        {/* Main Content */}
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Chart Section */}
-          <div className="flex-1 bg-gray-800 p-6 rounded-lg shadow-lg w-full flex-grow">
+          <div className="flex-1 space-y-6">
+            
             {/* Asset Selector */}
-            <div ref={assetRef} className={`relative ${step === 2 ? "ring-4 ring-blue-500 rounded-md" : ""}`}>
+            <div ref={assetRef} className={`relative w-full transition-all ${step === 2 ? activeRing : ""}`}>
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-medium shadow"
+                className={`w-full md:w-auto px-6 py-2.5 rounded-lg flex items-center justify-between gap-3 font-bold border transition-all ${darkMode ? "bg-black border-gray-800 text-white" : "bg-gray-50 border-gray-200 text-black"}`}
               >
                 {selectedAsset || "Select Asset"}
+                <ChevronDown size={18} />
               </button>
               {isOpen && (
-                <div className="absolute top-12 left-0 bg-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto w-full z-50">
+                <div className={`absolute top-14 left-0 rounded-xl border shadow-2xl max-h-64 overflow-y-auto w-full md:w-64 z-[100] ${darkMode ? "bg-black border-gray-800" : "bg-white border-gray-200"}`}>
                   {assets.map((asset, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => selectAsset(asset.name)}
-                      className="w-full px-4 py-2 flex justify-between hover:bg-gray-600 text-white"
-                    >
-                      {asset.name}
-                      <span className="text-green-400 font-semibold">{asset.percent}</span>
+                    <button key={idx} onClick={() => selectAsset(asset.name)} className="w-full px-4 py-3 flex justify-between items-center border-b border-gray-800 hover:bg-[#f99616] hover:text-black transition-colors text-xs font-bold uppercase">
+                      {asset.name} <span className="font-black">{asset.percent}</span>
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Chart Replacement */}
-            <div className="mt-6 bg-gray-900 p-4 rounded-lg shadow-inner w-full flex-grow">
-              <div className="flex items-center mb-4">
-                <TrendingUp className="w-6 h-6 text-green-400" />
-                <span className="text-white font-bold text-lg ml-2">{selectedAsset || "Select Asset"}</span>
-              </div>
-              <div className="w-full h-[350px]">
+            {/* Chart Container */}
+            <div className={`bg-black p-2 md:p-4 rounded-xl border ${darkMode ? "border-gray-800" : "border-gray-200"}`}>
+              <div className="w-full h-[250px] md:h-[400px]">
                 <Line ref={chartRef} data={chartData} options={chartOptions} />
               </div>
             </div>
 
-            {/* Demo Guide */}
-            <div className="mt-6 bg-gray-700 p-4 rounded-lg shadow">
-              <h3 className="text-white font-bold text-lg mb-2">Demo Guide</h3>
-              <p className="text-gray-300 mb-4">{guideSteps[step]}</p>
-              <div className="flex justify-center space-x-2 mb-4">
-                {guideSteps.map((_, i) => (
-                  <span
-                    key={i}
-                    className={`w-3 h-3 rounded-full cursor-pointer transition-all duration-200 ${i === step ? "bg-blue-500 scale-125" : "bg-gray-600 hover:bg-gray-500"}`}
-                    onClick={() => setStep(i)}
-                  />
-                ))}
+            {/* Demo Guide Control Card */}
+            <div ref={guideRef} className={`p-5 rounded-2xl border transition-all ${darkMode ? "bg-zinc-900 border-gray-800 shadow-2xl" : "bg-white border-gray-200 shadow-lg"} ${step === 0 || step === 6 ? activeRing : ""}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 rounded-full bg-[#f99616] animate-pulse" />
+                <h3 className="font-black uppercase tracking-widest text-[10px] text-[#f99616]">Interactive Tutorial</h3>
               </div>
-              <div className="flex justify-between">
-                <button onClick={prevStep} disabled={step === 0} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded disabled:opacity-50">
-                  Back
-                </button>
-                <button onClick={nextStep} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
-                  {step === guideSteps.length - 1 ? "Finish" : "Continue"}
+              <p className="text-sm md:text-base font-bold mb-6 leading-snug">{guideSteps[step]}</p>
+              
+              <div className="flex justify-between items-center gap-4">
+                <button onClick={prevStep} disabled={step === 0} className="px-5 py-2.5 bg-gray-600 text-white rounded-xl font-black text-[10px] tracking-widest disabled:opacity-30">BACK</button>
+                <div className="flex gap-1.5">
+                  {guideSteps.map((_, i) => (
+                    <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === step ? "bg-[#f99616] scale-125" : "bg-gray-600"}`} />
+                  ))}
+                </div>
+                <button onClick={nextStep} className="px-5 py-2.5 bg-[#f99616] text-black rounded-xl font-black text-[10px] tracking-widest hover:bg-[#ffae34] transition-all">
+                  {step === guideSteps.length - 1 ? "FINISH" : "CONTINUE"}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Right Controls */}
+          {/* Right Control Sidebar */}
           <div className="w-full lg:w-80 space-y-6">
-            {/* Trade Time */}
-            <div ref={timeRef} className={`${step === 3 ? "ring-4 ring-blue-500 rounded-md" : ""} bg-gray-800 p-4 rounded-lg shadow`}>
-              <label className="text-gray-300 text-sm font-medium mb-2 block">Trade Time</label>
+            {/* Time Step */}
+            <div ref={timeRef} className={`p-4 rounded-2xl border transition-all ${darkMode ? "bg-[#0d0d0d] border-gray-800" : "bg-white border-gray-200"} ${step === 3 ? activeRing : ""}`}>
+              <label className="text-gray-500 text-[10px] font-black uppercase mb-3 block tracking-widest">Select Duration</label>
               <div className="grid grid-cols-2 gap-2">
-                {[30, 60, 120, 300].map((time) => (
-                  <button
-                    key={time}
-                    onClick={() => setTradeTime(time)}
-                    className={`px-4 py-2 rounded-lg text-white font-medium ${tradeTime === time ? "bg-blue-500" : "bg-gray-700 hover:bg-gray-600"}`}
-                  >
-                    {time}s
-                  </button>
+                {[30, 60, 120, 300].map(t => (
+                  <button key={t} onClick={() => {setTradeTime(t); if(step===3) setTimeout(()=>setStep(4), 500);}} className={`py-3 rounded-xl text-xs font-black border transition-all ${tradeTime === t ? "bg-[#f99616] border-[#f99616] text-white" : "border-gray-800 text-gray-400 hover:border-gray-600"}`}>{t}s</button>
                 ))}
               </div>
             </div>
 
-            {/* Investment */}
-            <div ref={investmentRef} className={`${step === 4 ? "ring-4 ring-blue-500 rounded-md" : ""} bg-gray-800 p-4 rounded-lg shadow`}>
-              <label className="text-gray-300 text-sm font-medium mb-2 block">Investment Amount</label>
+            {/* Investment Step */}
+            <div ref={investmentRef} className={`p-4 rounded-2xl border transition-all ${darkMode ? "bg-[#0d0d0d] border-gray-800" : "bg-white border-gray-200"} ${step === 4 ? activeRing : ""}`}>
+              <label className="text-gray-500 text-[10px] font-black uppercase mb-3 block tracking-widest">Investment Amount</label>
               <div className="grid grid-cols-2 gap-2">
-                {["50", "100", "250", "500"].map((amount) => (
-                  <button
-                    key={amount}
-                    onClick={() => setInvestment(amount)}
-                    className={`px-4 py-2 rounded-lg font-medium ${investment == amount ? "bg-green-500 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"}`}
-                  >
-                    ${amount}
-                  </button>
+                {["50", "100", "250", "500"].map(a => (
+                  <button key={a} onClick={() => {setInvestment(a); if(step===4) setTimeout(()=>setStep(5), 500);}} className={`py-3 rounded-xl text-xs font-black border transition-all ${investment == a ? "bg-[#f99616] border-[#f99616] text-white shadow-lg" : "border-gray-800 text-gray-400 hover:border-gray-600"}`}>${a}</button>
                 ))}
               </div>
             </div>
 
-            {/* Payout Info */}
-            <div ref={tradeRef} className={`${step === 5 ? "ring-4 ring-blue-500 rounded-md" : ""} bg-gray-800 p-4 rounded-lg shadow`}>
-              <h4 className="text-white font-semibold mb-2">Payout Information</h4>
-              <div className="flex justify-between mb-1">
-                <span className="text-gray-300">Investment:</span>
-                <span className="text-white">${investment || 0}</span>
+            {/* Execution Step */}
+            <div ref={tradeRef} className={`p-4 rounded-2xl border transition-all ${darkMode ? "bg-[#0d0d0d] border-gray-800" : "bg-white border-gray-200"} ${step === 5 ? activeRing : ""}`}>
+              <h4 className="text-[#f99616] font-black uppercase text-[10px] tracking-widest mb-4">Trade Summary</h4>
+              <div className="space-y-4 mb-6">
+                <div className="flex justify-between text-xs font-black">
+                  <span className="text-gray-500 uppercase">PROFIT (92%)</span>
+                  <span className="text-green-500">+${investment ? (investment * 0.92).toFixed(2) : "0.00"}</span>
+                </div>
+                <div className="flex justify-between text-xs font-black border-t border-gray-800 pt-3">
+                  <span className="text-gray-400 uppercase tracking-tighter">Total Payout</span>
+                  <span className="text-[#f99616] text-lg font-black">${investment ? (investment * 1.92).toFixed(2) : "0.00"}</span>
+                </div>
               </div>
-              <div className="flex justify-between mb-1">
-                <span className="text-gray-300">Potential Profit:</span>
-                <span className="text-green-400">+${investment ? (investment * 0.92).toFixed(2) : "0.00"}</span>
+              <div className="grid grid-cols-2 gap-2">
+                <button className="bg-green-600 text-white py-4 rounded-xl font-black text-xs active:scale-95 shadow-lg shadow-green-900/20">CALL</button>
+                <button className="bg-red-600 text-white py-4 rounded-xl font-black text-xs active:scale-95 shadow-lg shadow-red-900/20">PUT</button>
               </div>
-              <div className="flex justify-between border-t border-gray-600 pt-2">
-                <span className="text-gray-300">Total Return:</span>
-                <span className="text-white font-semibold">${investment ? (investment * 1.92).toFixed(2) : "0.00"}</span>
-              </div>
-
-              <button onClick={nextStep} className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded font-semibold">
-                Continue
-              </button>
-
-              <div className="space-y-2 mt-4">
-                <button className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded flex items-center justify-center gap-2 font-semibold">
-                  <TrendingUp /> BUY
-                </button>
-                <button className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded flex items-center justify-center gap-2 font-semibold">
-                  <TrendingDown /> SELL
-                </button>
-              </div>
+              <button onClick={nextStep} className="w-full mt-4 py-3 bg-zinc-800 text-[#f99616] border border-zinc-700 rounded-xl font-black text-[10px] tracking-widest">CONTINUE TUTORIAL</button>
             </div>
           </div>
         </div>

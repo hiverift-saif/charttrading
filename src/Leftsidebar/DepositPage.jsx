@@ -4,10 +4,12 @@ import DepositContent from './DepositContent';
 import WithdrawContent from './WithdrawContent';
 import BonusContent from './BonusContent';
 import HistoryContent from './HistoryContent';
-import { useTheme } from "../context/ThemeContext"; // 🚀 Context Import
+import { useTheme } from "../context/ThemeContext";
 
 const DepositPage = ({ initialTab, setActiveTab }) => { 
-  const { darkMode } = useTheme(); // 🚀 Theme hook
+  const { darkMode } = useTheme();
+  
+  // 1. 🚀 Sync: Jab initialTab (URL/Parent state) badle, toh internal state bhi badle
   const [activeSubTab, setActiveSubTab] = useState(initialTab || 'deposit');
   const [step, setStep] = useState(1);
   const [selectedMethod, setSelectedMethod] = useState(null);
@@ -15,13 +17,16 @@ const DepositPage = ({ initialTab, setActiveTab }) => {
 
   useEffect(() => {
     if (initialTab) { 
-      setActiveSubTab(initialTab); 
-      setStep(1); 
+      setActiveSubTab(initialTab);
+      // Agar tab change ho toh step 1 par reset karein (sirf deposit ke liye)
+      if (initialTab !== 'deposit') setStep(1); 
     }
   }, [initialTab]);
 
+  // 2. 🚀 Handle Change: Jab user click kare, toh Parent (Dashboard) ko batao taaki URL update ho
   const handleTabChange = (tab) => {
     setActiveSubTab(tab);
+    setActiveTab(tab); // 👈 Ye URL update karne wala logic trigger karega TradingDashboard mein
     if (tab === 'deposit') setStep(1);
   };
 
@@ -35,7 +40,7 @@ const DepositPage = ({ initialTab, setActiveTab }) => {
         
         <div className="flex items-center w-full">
           
-          {/* 🚀 BACK BUTTON */}
+          {/* BACK BUTTON */}
           <button 
             onClick={() => setActiveTab('chart')} 
             className={`flex items-center gap-2 px-4 py-2 mr-4 border rounded-xl transition-all group
@@ -81,11 +86,12 @@ const DepositPage = ({ initialTab, setActiveTab }) => {
         </div>
       </div>
 
-      {/* --- SMOOTH CONTENT RENDERER --- */}
+      {/* --- CONTENT RENDERER --- */}
       <div className="flex-1 w-full overflow-hidden relative">
         <div className="h-full w-full max-w-7xl mx-auto overflow-y-auto custom-scrollbar p-4 md:p-10 pb-24 lg:pb-10">
           
-          <div className="animate-in fade-in slide-in-from-right-8 duration-500 ease-out">
+          {/* Key prop ensures re-render animation when sub-tab changes */}
+          <div key={activeSubTab} className="animate-in fade-in slide-in-from-right-4 duration-400 ease-out">
             {activeSubTab === 'deposit' && (
               <DepositContent 
                 step={step} setStep={setStep} 

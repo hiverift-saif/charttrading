@@ -32,7 +32,6 @@ const AdminKYC = () => {
         setPendingUsers([]);
       }
     } catch (err) {
-      console.error("KYC Fetch Error:", err);
       setPendingUsers([]);
     } finally {
       setLoading(false);

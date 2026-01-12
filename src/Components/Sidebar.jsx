@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react"; 
+import { Eye, EyeOff, Mail, Lock, Loader2 ,UserPlus, LogIn, Chrome, ShieldCheck} from "lucide-react"; 
 import API_CONFIG from '../config'; 
 import { useTheme } from "../context/ThemeContext";
 
@@ -101,8 +101,7 @@ const Sidebar = () => {
                 : (darkMode ? "bg-transparent text-gray-400 border border-gray-700 hover:text-white" : "bg-transparent text-gray-500 border border-gray-200 hover:bg-gray-50")
             }`}
           >
-            Sign Up
-          </button>
+<UserPlus size={16} /> Sign Up          </button>
 
           <button
             onClick={() => { setActiveTab("login"); setApiError(""); }}
@@ -112,8 +111,7 @@ const Sidebar = () => {
                 : (darkMode ? "bg-transparent text-gray-400 border border-gray-700 hover:text-white" : "bg-transparent text-gray-500 border border-gray-200 hover:bg-gray-50")
             }`}
           >
-            Log In
-          </button>
+<LogIn size={16} /> Log In          </button>
         </div>
         {apiError && <p className="text-red-500 text-[10px] mt-2 text-center font-bold uppercase tracking-tight animate-pulse">{apiError}</p>}
       </div>

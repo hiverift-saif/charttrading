@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Menu, MessageSquare, ChevronDown, X, Search, Check, Sun, Moon } from "lucide-react";
+import { Menu, MessageSquare, ChevronDown, X, Search, Check, Sun, Moon, UserPlus, LogIn } from "lucide-react";
 import MobileMenu from "./MobileMenu";
 import { Link, useLocation } from "react-router-dom";
 import logo from "../assets/Logo.png";
@@ -36,7 +36,6 @@ const Navbar = ({ onOpenAuth }) => {
   const location = useLocation();
   const desktopDropdownRef = useRef(null);
 
-  // 🚀 Logo Filter Logic: Dark Mode me normal, Light Mode me invert (Black)
   const logoStyle = {
     filter: darkMode ? "none" : "invert(1)",
     transition: "filter 0.3s ease"
@@ -130,7 +129,7 @@ const Navbar = ({ onOpenAuth }) => {
           {isMenuOpen ? <X size={26} className={darkMode ? "text-white" : "text-black"} /> : <Menu size={26} className={darkMode ? "text-white" : "text-black"} />}
         </button>
 
-        {/* Mobile Logo with Style Filter */}
+        {/* Mobile Logo */}
         <div className="md:hidden">
           <Link to="/" onClick={() => setIsMenuOpen(false)}>
             <img src={logo} alt="logo" className="w-20 h-auto object-contain" style={logoStyle} />
@@ -149,6 +148,7 @@ const Navbar = ({ onOpenAuth }) => {
             {isLangOpen && <DropdownContent />}
           </div>
 
+          {/* 🚀 LEFT SIDE DARK MODE (Always Visible on Desktop) */}
           <button 
             onClick={() => setDarkMode(!darkMode)}
             className={`p-2 rounded-full transition-colors ${darkMode ? "text-yellow-400 hover:bg-white/10" : "text-gray-600 hover:bg-black/5"}`}
@@ -170,30 +170,40 @@ const Navbar = ({ onOpenAuth }) => {
       </div>
 
       {/* --- RIGHT SECTION --- */}
-      <div className="ml-auto flex items-center gap-2 z-20">
+      <div className="ml-auto flex items-center gap-1.5 md:gap-3 z-20">
+        
+        {/* 🚀 DARK MODE TOGGLE (Only visible on Mobile in the Right section) */}
         <button 
           onClick={() => setDarkMode(!darkMode)}
-          className={`md:hidden p-2 rounded-full ${darkMode ? "text-yellow-400" : "text-gray-600"}`}
+          className={`md:hidden p-2 rounded-full transition-all active:scale-90 ${darkMode ? "text-yellow-400" : "text-gray-600"}`}
         >
           {darkMode ? <Sun size={18} /> : <Moon size={18} />}
         </button>
 
+        {/* Sign Up Button */}
         <Link
           to="/signup"
           onClick={() => setIsMenuOpen(false)}
-          className={`py-1.5 px-3 text-[11px] font-medium rounded-lg transition-all
-            ${location.pathname === "/signup" ? "bg-blue-600 text-white shadow-md" : (darkMode ? "text-gray-400 border border-gray-700 hover:text-white" : "text-gray-600 border border-gray-300 hover:text-black")}`}
+          className={`py-2 px-2.5 md:px-4 text-[10px] md:text-[11px] font-black uppercase tracking-tight rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap
+            ${location.pathname === "/signup" 
+              ? "bg-blue-600 text-white shadow-md" 
+              : (darkMode ? "text-gray-300 border border-gray-700 hover:bg-white/5" : "text-gray-600 border border-gray-300 hover:bg-gray-50")}`}
         >
-          Sign Up
+          <UserPlus size={14} className="shrink-0" /> 
+          <span>Sign Up</span>
         </Link>
 
+        {/* Log In Button */}
         <Link
           to="/login"
           onClick={() => setIsMenuOpen(false)}
-          className={`py-1.5 px-3 text-[11px] font-medium rounded-lg transition-all
-            ${location.pathname === "/login" ? "bg-[#2d1f4a] text-white border border-purple-500 shadow-md" : (darkMode ? "text-gray-400 border border-gray-700 hover:text-white" : "text-gray-600 border border-gray-300 hover:text-black")}`}
+          className={`py-2 px-2.5 md:px-4 text-[10px] md:text-[11px] font-black uppercase tracking-tight rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap
+            ${location.pathname === "/login" 
+              ? "bg-[#2d1f4a] text-white border border-purple-500 shadow-md" 
+              : (darkMode ? "text-gray-300 border border-gray-700 hover:bg-white/5" : "text-gray-600 border border-gray-300 hover:bg-gray-50")}`}
         >
-          Log In
+          <LogIn size={14} className="shrink-0" /> 
+          <span>Log In</span>
         </Link>
       </div>
 

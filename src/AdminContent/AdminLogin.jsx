@@ -29,45 +29,49 @@ const handleLogin = async (e) => {
   };
 
   try {
+    // 🚀 URL aur Payload dono ko check karein
     const response = await axios.post(
       `${API_CONFIG.baseURL}/auth/login?rememberMe=true`, 
       loginPayload
     );
 
-    // 🚀 FIX: Aapke JSON ke hisaab se token yahan hai:
-    const token = response.data.result?.accessToken;
+    console.log("Full API Response:", response.data); // Debugging ke liye zaroori hai
 
-    if (token) {
-      // 1. Token Save Karein
-      localStorage.setItem("admin_token", token);
-      
-      console.log("Admin Token Saved Successfully ✅");
+    // 🚀 FIX: Status Code 201 check karein aur token extract karein
+    // Aapke backend format ke hisaab se path 'response.data.access_token' ya 'response.data.result.accessToken' ho sakta hai
+    const token = response.data.access_token || response.data.result?.accessToken || response.data.token;
 
-      // 2. Success Alert
-      await Swal.fire({
-        icon: 'success',
-        title: 'Admin Verified',
-        text: 'Access Granted. Redirecting...',
-        timer: 1500,
-        showConfirmButton: false,
-        background: darkMode ? '#0d0d0d' : '#fff',
-        color: darkMode ? '#fff' : '#000'
-      });
+    if (response.status === 201 || response.status === 200) {
+      if (token) {
+        // 1. Token Save Karein
+        localStorage.setItem("admin_token", token);
 
-      // 3. 🚀 REDIRECT: Ensure path is correct (/admin or /admin/dashboard)
-      navigate('/admin');
-      
-    } else {
-      console.error("Token key mismatch! Check response structure.");
-      throw new Error("Token not found in response result");
+        // 2. Success Alert
+        await Swal.fire({
+          icon: 'success',
+          title: 'Verified',
+          text: 'Welcome back, Admin!',
+          timer: 1500,
+          showConfirmButton: false,
+          background: darkMode ? '#0d0d0d' : '#fff',
+          color: darkMode ? '#fff' : '#000'
+        });
+
+        // 3. Redirect
+        navigate('/admin');
+      } else {
+        throw new Error("Token missing from response");
+      }
     }
-
   } catch (error) {
-    console.error("Login Error:", error.response?.data || error.message);
+    // 🚀 Detailed Error Logging
+    const serverMessage = error.response?.data?.message || error.message;
+    console.error("Login Failed:", serverMessage);
+
     Swal.fire({
       icon: 'error',
-      title: 'Login Failed',
-      text: error.response?.data?.message || 'Invalid Credentials',
+      title: 'Login Error',
+      text: serverMessage === "Invalid Credentials" ? "Email ya Password galat hai" : serverMessage,
       confirmButtonColor: '#ef4444',
       background: darkMode ? '#0d0d0d' : '#fff',
       color: darkMode ? '#fff' : '#000'

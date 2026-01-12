@@ -1,9 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  balance: 10000,        // Real Account Balance
-  demoBalance: 50000,    // Demo Account Balance (Added)
-  accountType: 'real',   // 'real' or 'demo' (Added)
+  balance: 10000,         // Real Account Balance
+  demoBalance: 50000,     // Demo Account Balance
+  accountType: 'real',    // 'real' or 'demo'
   currentAsset: {
     name: "BTC",
     displayName: "BTC/USD",
@@ -18,64 +18,77 @@ const initialState = {
   openTrades: [],
   tradeHistory: [],
   currentPrice: 0,
+  isSyncing: false,       // 🚀 Naya: Wallet update ko lock karne ke liye
 };
 
 export const tradingSlice = createSlice({
   name: 'trading',
   initialState,
   reducers: {
-    // --- Added: Reducer to switch between Real and Demo ---
+    // 🚀 Naya: Syncing lock toggle karne ke liye
+    setSyncing: (state, action) => {
+      state.isSyncing = action.payload;
+    },
+
     setAccountType: (state, action) => {
-      state.accountType = action.payload; // action.payload must be 'real' or 'demo'
+      state.accountType = action.payload;
     },
 
     setTradeAmount: (state, action) => {
       state.tradeAmount = action.payload;
     },
+
     setAsset: (state, action) => {
       state.currentAsset = action.payload;
     },
+
     setPayoutPercentage: (state, action) => {
       state.payoutPercentage = action.payload;
     },
+
     setTradeTime: (state, action) => {
       state.tradeTime = action.payload;
     },
+
     setChartType: (state, action) => {
       state.chartType = action.payload;
     },
+
     setTimeframe: (state, action) => {
       state.timeframe = action.payload;
     },
+
 setBalance: (state, action) => {
-  // 🚀 Force update
-  console.log("Redux updating real balance to:", action.payload);
-  state.balance = Number(action.payload);
+    state.balance = Number(action.payload);
+    localStorage.setItem('temp_balance', action.payload); // Backup rakhein
 },
-    // --- Modified: Logic to deduct money based on accountType ---
+
     addOpenTrade: (state, action) => {
       const trade = {
         ...action.payload,
-        accountUsed: state.accountType // Track which account was used for this trade
+        accountUsed: state.accountType // Kaunsa wallet use hua track karein
       };
       
       state.openTrades.push(trade);
 
+      // Balance deduction logic
       if (state.accountType === 'demo') {
-  state.demoBalance -= Number(trade.amount);
-} else {
-  state.balance -= Number(trade.amount);
-}
+        state.demoBalance -= Number(trade.amount);
+      } else {
+        state.balance -= Number(trade.amount);
+      }
     },
 
     updatePrice: (state, action) => {
       state.currentPrice = action.payload;
     },
-updateDemoBalance: (state, action) => {
-  console.log("Redux updating demo balance to:", action.payload);
-  state.demoBalance = Number(action.payload);
-},
-    // --- Modified: Logic to add profit based on accountUsed in that trade ---
+
+    updateDemoBalance: (state, action) => {
+      // 🚀 Check: Same logic for demo balance
+      if (state.isSyncing) return;
+      state.demoBalance = Number(action.payload);
+    },
+
     closeTrade: (state, action) => {
       const { id, isWin, profitAmount } = action.payload;
       const index = state.openTrades.findIndex(t => t.id === id);
@@ -92,7 +105,7 @@ updateDemoBalance: (state, action) => {
         state.openTrades.splice(index, 1);
 
         if (isWin) {
-          // Check which account was used when the trade was opened
+          // Profit sahi wallet mein add karein
           if (tradeData.accountUsed === 'demo') {
             state.demoBalance += profitAmount;
           } else {
@@ -105,7 +118,8 @@ updateDemoBalance: (state, action) => {
 });
 
 export const {
-  setAccountType, // Export new action
+  setAccountType,
+  setSyncing,        // 🚀 Exported
   setTradeAmount,
   setAsset,
   setPayoutPercentage,

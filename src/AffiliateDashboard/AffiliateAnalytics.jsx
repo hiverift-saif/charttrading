@@ -30,7 +30,6 @@ export default function AffiliateAnalytics() {
           }
         });
 
-        console.log("API DATA 👉", response.data);
         setRawData(response.data.result || []);
       } catch (err) {
         setError("Failed to load analytics data");

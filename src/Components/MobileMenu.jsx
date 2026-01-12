@@ -110,12 +110,12 @@ const MobileMenu = ({ isOpen, onClose }) => {
               </h3>
               <ul className="space-y-3">
                 <li>
-                  <Link to="/web-platform" onClick={onClose} className={`flex items-center gap-2 ${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>
+                  <Link to="/trading" onClick={onClose} className={`flex items-center gap-2 ${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>
                     <Globe size={18} /> Web Platform
                   </Link>
                 </li>
                 <li>
-                  <Link to="/telegram-support" onClick={onClose} className={`flex items-center gap-2 ${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>
+                  <Link to="/TelegramSupportPage" onClick={onClose} className={`flex items-center gap-2 ${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>
                     <Send size={18} /> Telegram Support
                   </Link>
                 </li>
@@ -128,12 +128,12 @@ const MobileMenu = ({ isOpen, onClose }) => {
                 Company
               </h3>
               <ul className={`space-y-3 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                <li><Link to="/about" onClick={onClose} className="hover:text-blue-500">About Us</Link></li>
-                <li><Link to="/blog" onClick={onClose} className="hover:text-blue-500">Insights & Blog</Link></li>
-                <li><Link to="/contact" onClick={onClose} className="hover:text-blue-500">Contact</Link></li>
-                <li><Link to="/support" onClick={onClose} className="hover:text-blue-500">Support Center</Link></li>
-                <li><Link to="/terms" onClick={onClose} className="hover:text-blue-500">Terms of Service</Link></li>
-                <li><Link to="/privacy" onClick={onClose} className="hover:text-blue-500">Privacy Policy</Link></li>
+                <li><Link to="/aboutthecompany" onClick={onClose} className="hover:text-blue-500">About Us</Link></li>
+                <li><Link to="/maxtradingblog" onClick={onClose} className="hover:text-blue-500">Insights & Blog</Link></li>
+                <li><Link to="/contacts" onClick={onClose} className="hover:text-blue-500">Contact</Link></li>
+                <li><Link to="/supportservice" onClick={onClose} className="hover:text-blue-500">Support Center</Link></li>
+                <li><Link to="/amlkycpolicy" onClick={onClose} className="hover:text-blue-500">Terms of Service</Link></li>
+                <li><Link to="/privacypolicy" onClick={onClose} className="hover:text-blue-500">Privacy Policy</Link></li>
               </ul>
             </div>
 

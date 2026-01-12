@@ -49,7 +49,6 @@ const TradePanel = () => {
     setTradeError('');
 
     try {
-      console.log('tradeDirection',tradeDirection)
       const tradeData = {
         userId: userId,
         type: tradeDirection, // "buy" or "sell"
@@ -68,7 +67,6 @@ const TradePanel = () => {
         isPublic: true
       };
 
-      console.log(`📤 Placing ${tradeDirection.toUpperCase()} trade:`, tradeData);
 
       const response = await fetch(`${API_CONFIG.baseURL}/trades/${tradeDirection}`, {
         method: 'POST',

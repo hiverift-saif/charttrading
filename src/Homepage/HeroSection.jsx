@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { ArrowUpRight, ArrowDownRight, Star } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Star,  } from "lucide-react";
 import { useTheme } from "../context/ThemeContext"; // Context Import kiya
+import { Link } from "react-router-dom";
+
 
 // --- 1. DATA (Assets List) ---
 const assets = [
@@ -80,13 +82,18 @@ const HeroSection = () => {
 
       {/* 4. BUTTONS */}
       <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 w-full sm:w-auto">
+        <Link to="/trading">
         <button className="w-full sm:w-auto font-moderustic bg-[linear-gradient(to_right,#ff7e13,#ff3d00)] text-white font-semibold text-sm md:text-base py-2.5 px-6 md:py-3 md:px-8 rounded-xl transition-all active:scale-95 shadow-lg shadow-orange-500/20">
           Start Trading Free
         </button>
+        </Link>
+
+         <Link to="/">
         <button className={`w-full sm:w-auto font-medium text-sm md:text-base py-2.5 px-6 md:py-3 md:px-8 font-moderustic rounded-xl transition-all border active:scale-95
           ${darkMode ? "bg-[#26211f] hover:bg-[#2e2724] text-white border-[#38312e]" : "bg-white hover:bg-gray-50 text-slate-900 border-gray-300 shadow-sm"}`}>
           Open Demo Account
         </button>
+        </Link>
       </div>
 
       {/* 5. TRUSTPILOT RATING */}

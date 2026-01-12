@@ -28,7 +28,6 @@ const AdminFinance = () => {
       setDeposits(pendingOnly);
       
     } catch (err) {
-      console.error("Finance Fetch Error:", err);
       setDeposits([]);
     } finally {
       setLoading(false);

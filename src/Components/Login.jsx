@@ -45,6 +45,7 @@ const handleSubmit = async (e) => {
   setError("");
   setSuccess("");
   setErrors({});
+  
   if (!validateForm()) return;
 
   setIsLoading(true);
@@ -57,22 +58,39 @@ const handleSubmit = async (e) => {
         password: formData.password
       }),
     });
-    const data = await response.json();
-    if (response.ok) {
-      // SUCCESS: Token aur User info save karein
-      localStorage.setItem('access_token', data.result.accessToken);
-      localStorage.setItem('user_name', data.user?.name || "Trader"); 
-      localStorage.setItem('user_email', formData.email); 
 
-      setSuccess("Login successful! Redirecting...");
-      setTimeout(() => {
-        window.location.href = '/trading'; 
-      }, 2000);
+    const data = await response.json();
+console.log("jfhsadfaf",data)
+    if (response.ok) {
+      // 🚀 FIX: Aapke API response ke hisaab se token yahan hai
+      const token = data?.result?.accessToken; 
+      
+      if (token) {
+        localStorage.setItem('access_token', token);
+        // Agar API se user name nahi aa raha toh email ka pehla part use kar lo
+        localStorage.setItem('user_name', data.user?.name || formData.email.split('@')[0]); 
+        localStorage.setItem('user_email', formData.email); 
+
+        // Remember Me Logic
+        if (rememberMe) {
+          localStorage.setItem("rememberedEmail", formData.email);
+        } else {
+          localStorage.removeItem("rememberedEmail");
+        }
+
+        setSuccess("Login successful! Redirecting...");
+        setTimeout(() => {
+          window.location.href = '/trading'; 
+        }, 1500);
+      } else {
+        setError("Token not found in response.");
+      }
     } else {
       setError(data.message || "Invalid credentials. Please try again.");
     }
   } catch (err) {
-    setError("Network error. Please try again.");
+    console.error("Login Error:", err); // Isse console mein asli error dikhega
+    setError("Network error. Please check your connection.");
   } finally {
     setIsLoading(false);
   }

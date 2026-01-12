@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux'; 
-import { useLocation } from 'react-router-dom'; // 🚀 Added
-import { setAccountType } from '../redux/tradingSlice'; // 🚀 Path check karein
+import { useLocation, useNavigate } from 'react-router-dom'; // 🚀 Added useNavigate
+import { setAccountType } from '../redux/tradingSlice';
 
-// Baaki imports same raheinge...
+// Saare imports wahi rahenge...
 import SidebarLeft from '../chart/SidebarLeft';
 import TradePanel from '../chart/TradePanel'; 
 import IconStrip from '../chart/IconStrip';   
@@ -21,25 +21,38 @@ import { Menu, X, LayoutDashboard } from 'lucide-react';
 const TradingDashboard = () => {
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate(); // 🚀 URL update karne ke liye
   
-  const [activeTab, setActiveTab] = useState('chart'); 
+  // 1. 🚀 LOGIC: URL se tab uthayega (Sabse solid tarika refresh fix karne ka)
+  const queryParams = new URLSearchParams(location.search);
+  const initialTab = queryParams.get('tab') || localStorage.getItem('activeTradingTab') || 'chart';
+
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); 
   const [isIconStripOpen, setIsIconStripOpen] = useState(false); 
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedT, setSelectedT] = useState(null);
 
-  // 🚀 LOGIC: Check for Demo mode on mount
+  // 2. 🚀 UPDATE: Jab bhi activeTab change ho, URL aur LocalStorage dono update karo
+  useEffect(() => {
+    localStorage.setItem('activeTradingTab', activeTab);
+    // URL update karega bina page reload kiye: /trading?tab=profile
+    navigate(`?tab=${activeTab}`, { replace: true });
+  }, [activeTab, navigate]);
+
+  // Demo mode logic (Original)
   useEffect(() => {
     if (location.state && location.state.mode === 'demo') {
       dispatch(setAccountType('demo'));
-      // URL state clear karein taaki refresh par wapas Real na ho (optional)
-      window.history.replaceState({}, document.title);
+      // Note: location.state refresh par udd jata hai, isliye accountType redux mein persistence check karein
     }
   }, [location.state, dispatch]);
 
   const { currentAsset, currentPrice } = useSelector((state) => state.trading);
   const displayPrice = currentPrice > 0 ? currentPrice.toFixed(2) : 'Connecting...';
+
+  // ... handleOpenTournament, toggle logic wahi rahenge
 
   const handleOpenTournament = (tournament) => {
     setSelectedT(tournament);
@@ -72,7 +85,7 @@ const TradingDashboard = () => {
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* --- 2. LEFT SIDEBAR (Desktop) --- */}
+        {/* --- 2. LEFT SIDEBAR --- */}
         <div className="hidden lg:block h-full flex-shrink-0 border-r border-gray-800 bg-[#161413] z-50">
           <SidebarLeft setActiveTab={setActiveTab} activeTab={activeTab} onTournamentClick={handleOpenTournament} />
         </div>
@@ -88,11 +101,12 @@ const TradingDashboard = () => {
                 </div>
               </div>
             ) : (
-              <div className="w-full h-full overflow-y-auto custom-scrollbar  pointer-events-auto ">
-{(['deposit', 'withdraw', 'history', 'bonus'].includes(activeTab)) && (
-  <DepositPage initialTab={activeTab} setActiveTab={setActiveTab} />
-)}                {activeTab === 'profile' && <ProfilePage setActiveTab={setActiveTab} />}
-      {activeTab === 'support' && <SupportPage setActiveTab={setActiveTab} />}
+              <div className="w-full h-full overflow-y-auto custom-scrollbar pointer-events-auto">
+                {(['deposit', 'withdraw', 'history', 'bonus'].includes(activeTab)) && (
+                  <DepositPage initialTab={activeTab} setActiveTab={setActiveTab} />
+                )}
+                {activeTab === 'profile' && <ProfilePage setActiveTab={setActiveTab} />}
+                {activeTab === 'support' && <SupportPage setActiveTab={setActiveTab} />}
               </div>
             )}
           </main>
@@ -111,7 +125,7 @@ const TradingDashboard = () => {
         </div>
       </div>
 
-      {/* Mobile Icon Strip Drawer */}
+      {/* Drawers same rahenge... */}
       {isIconStripOpen && (
         <div className="fixed inset-0 z-[150] lg:hidden flex">
           <div className="flex-1 h-full bg-black/60 backdrop-blur-sm" onClick={() => setIsIconStripOpen(false)}></div>
@@ -121,7 +135,6 @@ const TradingDashboard = () => {
         </div>
       )}
 
-      {/* Mobile Left Menu Drawer */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[150] bg-black/80 lg:hidden flex">
           <div className="w-72 h-full bg-[#161413] shadow-2xl relative">

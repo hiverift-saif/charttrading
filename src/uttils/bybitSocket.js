@@ -5,7 +5,6 @@ export const connectBybitSocket = (symbol, onPrice) => {
   const ws = new WebSocket("wss://stream.bybit.com/v5/public/spot");
 
   ws.onopen = () => {
-    console.log("✅ Bybit WS connected");
 
     ws.send(
       JSON.stringify({

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setAccountType, setBalance, updateDemoBalance } from '../redux/tradingSlice';
 import {
@@ -14,26 +14,28 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
   const dispatch = useDispatch();
   const { darkMode, toggleTheme } = useTheme();
 
-  const { balance, demoBalance, accountType } = useSelector((state) => state.trading);
+  // 🚀 Get isSyncing from Redux
+  const { balance, demoBalance, accountType, isSyncing } = useSelector((state) => state.trading);
+  
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [userData, setUserData] = useState({ name: "Trader", email: "" });
   const menuRef = useRef(null);
 
   const currentBalance = accountType === 'demo' ? demoBalance : balance;
 
-  // Safe balance formatting - prevents NaN, undefined, 0.00 bugs
   const formatBalance = (value) => {
     const num = parseFloat(value);
-    if (isNaN(num) || num == null || !isFinite(num)) {
-      return "0.00";
-    }
-    return num.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
+    if (isNaN(num) || num == null || !isFinite(num)) return "0.00";
+    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  const fetchBalance = async () => {
+  // 🚀 Wrapped in useCallback to prevent re-creation
+  const fetchBalance = useCallback(async () => {
+    // 🚀 CRITICAL: Syncing check inside fetch
+    if (isSyncing) {
+      return;
+    }
+
     try {
       const token = localStorage.getItem('access_token');
       if (!token) return;
@@ -54,7 +56,7 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
     } catch (error) {
       console.error("Error fetching balance:", error);
     }
-  };
+  }, [isSyncing, dispatch]); // Dependency on isSyncing
 
   useEffect(() => {
     fetchBalance();
@@ -62,25 +64,25 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
     const savedName = localStorage.getItem('user_name');
     const savedEmail = localStorage.getItem('user_email');
     if (savedName || savedEmail) {
-      setUserData({
-        name: savedName || "Trader",
-        email: savedEmail || ""
-      });
+      setUserData({ name: savedName || "Trader", email: savedEmail || "" });
     }
 
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsProfileOpen(false);
-      }
+      if (menuRef.current && !menuRef.current.contains(event.target)) setIsProfileOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, []); // Initial load only
 
-  useEffect(() => {
-    const interval = setInterval(fetchBalance, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  // 🚀 Polling interval logic
+useEffect(() => {
+    // Refresh hone par pehle local storage se uthayein
+    const savedBalance = localStorage.getItem('temp_balance');
+    if (savedBalance) {
+        dispatch(setBalance(savedBalance));
+    }
+    fetchBalance(); // Fir server se mangwayein
+}, []);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -185,6 +187,7 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
   );
 };
 
+// ... AccountOption and NavListItem sub-components remain same
 const AccountOption = ({ active, onClick, label, bal, icon, color, darkMode, formatBalance }) => (
   <div onClick={onClick} className={`p-3 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${active ? (darkMode ? 'bg-[#f99616]/10 border-[#f99616]' : 'bg-orange-50 border-[#f99616]') : (darkMode ? 'border-gray-800 hover:bg-white/5' : 'border-gray-200 hover:bg-gray-50')}`}>
     <div className="flex items-center gap-3">
