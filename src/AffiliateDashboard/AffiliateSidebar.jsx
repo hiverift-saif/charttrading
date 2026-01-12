@@ -1,6 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import logo from "../assets/Logo.png"; 
+import logo from "../assets/logo.png"; 
 import { useTheme } from "../context/ThemeContext"; // 🚀 Added Logic
 
 function AffiliateSidebar({ navItems, activeComponent, setActiveComponent, onClose }) {

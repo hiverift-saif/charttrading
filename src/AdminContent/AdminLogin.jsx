@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import API_CONFIG from '../config';
-import logo from "../assets/Logo.png";
+import logo from "../assets/logo.png";
 import { useTheme } from "../context/ThemeContext"; // 🚀 Context Import
 
 const AdminLogin = () => {

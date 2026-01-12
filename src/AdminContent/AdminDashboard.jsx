@@ -129,7 +129,7 @@ useEffect(() => {
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden text-[#f99616] p-1">
               <Menu size={26} />
             </button>
-            <img src="/src/assets/Logo.png" alt="Logo" className="w-28 md:w-32 h-auto object-contain" />
+            <img src="/src/assets/logo.png" alt="Logo" className="w-28 md:w-32 h-auto object-contain" />
           </div>
 
           <button 

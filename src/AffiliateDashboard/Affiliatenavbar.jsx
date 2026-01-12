@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sun, Moon, LogIn, UserPlus } from 'lucide-react';
 import { useTheme } from "../context/ThemeContext";
-import logo from "../assets/Logo.png";
+import logo from "../assets/logo.png";
 
 const Affiliatenavbar = () => {
   const { darkMode, toggleTheme } = useTheme();

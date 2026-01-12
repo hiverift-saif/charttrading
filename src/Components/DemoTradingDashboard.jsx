@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { TrendingUp, TrendingDown, ChevronDown } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
-import logo from "../assets/Logo.png";
+import logo from "../assets/logo.png";
 import {
   Chart as ChartJS,
   CategoryScale,

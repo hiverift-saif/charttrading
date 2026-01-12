@@ -7,7 +7,7 @@ import {
   Sun, Moon
 } from 'lucide-react';
 import { useTheme } from "../context/ThemeContext";
-import logo from "../assets/Logo.png";
+import logo from "../assets/logo.png";
 import API_CONFIG from '../config';
 
 const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
