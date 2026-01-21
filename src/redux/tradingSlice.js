@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   balance: 10000,         // Real Account Balance
+  kycStatus: 'unverified', // 🚀 Naya: 'unverified', 'pending', 'verified'
   demoBalance: 50000,     // Demo Account Balance
   accountType: 'real',    // 'real' or 'demo'
   currentAsset: {
@@ -62,8 +63,12 @@ setBalance: (state, action) => {
     state.balance = Number(action.payload);
     localStorage.setItem('temp_balance', action.payload); // Backup rakhein
 },
-
+setKycStatus: (state, action) => {
+  state.kycStatus = action.payload;
+  localStorage.setItem('kyc_status', action.payload); // Backup for refresh
+},
     addOpenTrade: (state, action) => {
+      console.log("Adding trade:", action.payload);
       const trade = {
         ...action.payload,
         accountUsed: state.accountType // Kaunsa wallet use hua track karein
@@ -73,6 +78,7 @@ setBalance: (state, action) => {
 
       // Balance deduction logic
       if (state.accountType === 'demo') {
+        console.log("Deducting from demo balance");
         state.demoBalance -= Number(trade.amount);
       } else {
         state.balance -= Number(trade.amount);
@@ -130,7 +136,8 @@ export const {
   closeTrade,
   updatePrice,
   setBalance,
-  updateDemoBalance
+  updateDemoBalance,
+  setKycStatus 
 } = tradingSlice.actions;
 
 export default tradingSlice.reducer;

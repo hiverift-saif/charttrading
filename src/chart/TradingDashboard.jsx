@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux'; 
-import { useLocation, useNavigate } from 'react-router-dom'; // 🚀 Added useNavigate
-import { setAccountType } from '../redux/tradingSlice';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { setAccountType, setKycStatus } from '../redux/tradingSlice'; // 🚀 Added setKycStatus
+import axios from 'axios';
+import API_CONFIG from '../config';
 
-// Saare imports wahi rahenge...
+// COMPONENTS
 import SidebarLeft from '../chart/SidebarLeft';
 import TradePanel from '../chart/TradePanel'; 
 import IconStrip from '../chart/IconStrip';   
@@ -15,15 +17,15 @@ import DepositPage from '../Leftsidebar/DepositPage';
 import SupportPage from '../Leftsidebar/SupportPage'; 
 import TournamentModal from '../chart/TournamentModal'; 
 import ProfilePage from '../Leftsidebar/ProfilePage'; 
-import HistoryPage from '../Leftsidebar/HistoryContent'; 
 import { Menu, X, LayoutDashboard } from 'lucide-react';
+import KYCPage from '../Components/KYCPage';
 
 const TradingDashboard = () => {
   const dispatch = useDispatch();
   const location = useLocation();
-  const navigate = useNavigate(); // 🚀 URL update karne ke liye
+  const navigate = useNavigate();
   
-  // 1. 🚀 LOGIC: URL se tab uthayega (Sabse solid tarika refresh fix karne ka)
+  // URL & Tab Persistence Logic
   const queryParams = new URLSearchParams(location.search);
   const initialTab = queryParams.get('tab') || localStorage.getItem('activeTradingTab') || 'chart';
 
@@ -34,25 +36,45 @@ const TradingDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedT, setSelectedT] = useState(null);
 
-  // 2. 🚀 UPDATE: Jab bhi activeTab change ho, URL aur LocalStorage dono update karo
+  // 🚀 1. KYC SYNC LOGIC: Backend se status fetch karke Redux mein save karega
+  const syncUserSecurityStatus = useCallback(async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
+    try {
+      const response = await axios.get(`${API_CONFIG.baseURL}/kyc/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Maan lete hain backend se 'unverified', 'pending', ya 'verified' status aa raha hai
+      const statusFromBackend = response.data.result?.status || 'unverified';
+      dispatch(setKycStatus(statusFromBackend));
+    } catch (error) {
+      console.error("Critical: Security sync failed", error);
+    }
+  }, [dispatch]);
+
+  // Initial Sync on Mount
+  useEffect(() => {
+    syncUserSecurityStatus();
+    // Optional: Har 2 minute mein sync karein agar status 'pending' ho
+  }, [syncUserSecurityStatus]);
+
+  // 🚀 2. URL & TAB Persistence Update
   useEffect(() => {
     localStorage.setItem('activeTradingTab', activeTab);
-    // URL update karega bina page reload kiye: /trading?tab=profile
     navigate(`?tab=${activeTab}`, { replace: true });
   }, [activeTab, navigate]);
 
-  // Demo mode logic (Original)
+  // Account Type Logic (Demo/Real)
   useEffect(() => {
     if (location.state && location.state.mode === 'demo') {
       dispatch(setAccountType('demo'));
-      // Note: location.state refresh par udd jata hai, isliye accountType redux mein persistence check karein
     }
   }, [location.state, dispatch]);
 
   const { currentAsset, currentPrice } = useSelector((state) => state.trading);
   const displayPrice = currentPrice > 0 ? currentPrice.toFixed(2) : 'Connecting...';
-
-  // ... handleOpenTournament, toggle logic wahi rahenge
 
   const handleOpenTournament = (tournament) => {
     setSelectedT(tournament);
@@ -73,7 +95,7 @@ const TradingDashboard = () => {
     <div className="flex flex-col h-[100dvh] w-full bg-[#1b1817] text-gray-300 font-sans lg:overflow-hidden lg:fixed lg:inset-0">
       <PriceWebSocket />
 
-      {/* --- 1. HEADER --- */}
+      {/* --- HEADER --- */}
       <div className="flex-shrink-0 z-[100] bg-[#1b1817] border-b border-gray-800 h-[60px] flex items-center relative">
         <Header 
           price={displayPrice} 
@@ -85,12 +107,12 @@ const TradingDashboard = () => {
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* --- 2. LEFT SIDEBAR --- */}
+        {/* --- LEFT SIDEBAR --- */}
         <div className="hidden lg:block h-full flex-shrink-0 border-r border-gray-800 bg-[#161413] z-50">
           <SidebarLeft setActiveTab={setActiveTab} activeTab={activeTab} onTournamentClick={handleOpenTournament} />
         </div>
 
-        {/* --- 3. CENTER AREA --- */}
+        {/* --- CENTER MAIN CONTENT --- */}
         <div className="flex-1 flex overflow-hidden bg-[#131722] relative z-0">
           <main className="flex-1 relative h-full overflow-hidden">
             {isChartMode ? (
@@ -102,16 +124,18 @@ const TradingDashboard = () => {
               </div>
             ) : (
               <div className="w-full h-full overflow-y-auto custom-scrollbar pointer-events-auto">
+                {/* Unified Sub-tab Renderer */}
                 {(['deposit', 'withdraw', 'history', 'bonus'].includes(activeTab)) && (
                   <DepositPage initialTab={activeTab} setActiveTab={setActiveTab} />
                 )}
                 {activeTab === 'profile' && <ProfilePage setActiveTab={setActiveTab} />}
                 {activeTab === 'support' && <SupportPage setActiveTab={setActiveTab} />}
+                {activeTab === 'kyc' && <KYCPage />} {/* 🚀 New KYC Component */}
               </div>
             )}
           </main>
 
-          {/* --- 4. RIGHT SIDEBAR --- */}
+          {/* --- RIGHT SIDEBARS --- */}
           <div className="hidden lg:flex h-full flex-shrink-0 z-40">
             {isChartMode && isRightPanelOpen && (
               <aside className="w-[280px] bg-[#161413] border-l border-gray-800">
@@ -125,7 +149,9 @@ const TradingDashboard = () => {
         </div>
       </div>
 
-      {/* Drawers same rahenge... */}
+      {/* --- DRAWERS & MODALS --- */}
+      
+      {/* Right Drawer (IconStrip for Mobile) */}
       {isIconStripOpen && (
         <div className="fixed inset-0 z-[150] lg:hidden flex">
           <div className="flex-1 h-full bg-black/60 backdrop-blur-sm" onClick={() => setIsIconStripOpen(false)}></div>
@@ -135,10 +161,14 @@ const TradingDashboard = () => {
         </div>
       )}
 
+      {/* Left Drawer (Sidebar for Mobile) */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[150] bg-black/80 lg:hidden flex">
           <div className="w-72 h-full bg-[#161413] shadow-2xl relative">
-            <div className="p-4 flex justify-between items-center border-b border-gray-800 text-white uppercase text-xs tracking-widest font-bold">Menu <button onClick={() => setIsMobileMenuOpen(false)}><X size={24} /></button></div>
+            <div className="p-4 flex justify-between items-center border-b border-gray-800 text-white uppercase text-xs tracking-widest font-bold">
+              Menu 
+              <button onClick={() => setIsMobileMenuOpen(false)}><X size={24} /></button>
+            </div>
             <SidebarLeft setActiveTab={(tab) => { setActiveTab(tab); setIsMobileMenuOpen(false); }} activeTab={activeTab} onTournamentClick={handleOpenTournament} />
           </div>
           <div className="flex-1 h-full" onClick={() => setIsMobileMenuOpen(false)}></div>
@@ -147,8 +177,14 @@ const TradingDashboard = () => {
 
       <TournamentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} data={selectedT} />
       
+      {/* 🚀 Quick Return to Chart (Mobile Only) */}
       {!isChartMode && (
-        <button onClick={() => setActiveTab('chart')} className="fixed bottom-6 right-6 bg-blue-600 p-4 rounded-full shadow-2xl lg:hidden z-[90] text-white"><LayoutDashboard size={24} /></button>
+        <button 
+          onClick={() => setActiveTab('chart')} 
+          className="fixed bottom-6 right-6 bg-blue-600 p-4 rounded-full shadow-2xl lg:hidden z-[90] text-white animate-bounce"
+        >
+          <LayoutDashboard size={24} />
+        </button>
       )}
     </div>
   );

@@ -1,64 +1,78 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { useTheme } from "../context/ThemeContext"; // 🚀 Added Logic
+import { Plus, Tag, AlertCircle, Loader2, X, Send } from 'lucide-react';
+import { useTheme } from "../context/ThemeContext";
+import API_CONFIG from '../config';
 
 function AffiliateSupport() {
-  const { darkMode } = useTheme(); // 🚀 Hook for theme check
-  const [activeTab, setActiveTab] = useState('requests');
+  const { darkMode } = useTheme();
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    message: '',
+    subject: '',
+    description: '',
+    category: 'withdrawal', // Default value
   });
 
-  const tabs = [
-    { id: 'requests', label: 'Support Requests', content: 'Customer Support Requests' },
+  const categories = [
+    { id: 'withdrawal', label: 'Withdrawal Issue' },
+    { id: 'deposit', label: 'Deposit Issue' },
+    { id: 'technical', label: 'Technical Support' },
+    { id: 'account', label: 'Account Access' },
+    { id: 'general', label: 'General Inquiry' },
   ];
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // 🚀 POST API: Submit New Ticket
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading) return;
-    setLoading(true);
+    const token = localStorage.getItem('affiliate_token') || localStorage.getItem('access_token');
+    
+    if (loading || !token) {
+      if (!token) Swal.fire({ icon: 'error', title: 'Unauthorized', text: 'Please login again.' });
+      return;
+    }
 
+    setLoading(true);
     try {
       const response = await axios.post(
-        'http://192.168.0.112:4000/api/ticketsubmit',
+        `${API_CONFIG.baseURL}/ticket`,
         formData,
-        { headers: { 'Content-Type': 'application/json' } }
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json' 
+          } 
+        }
       );
 
-      if (response.data.success) {
+      if (response.status === 201 || response.data.ticketId) {
         await Swal.fire({
           icon: 'success',
           title: 'Ticket Created!',
-          text: 'Your support ticket has been submitted successfully.',
+          text: `Your ticket ID is: ${response.data.ticketId}`,
           confirmButtonColor: '#f99616',
-          background: darkMode ? '#0d0d0d' : '#fff', // 🚀 Theme aware alert
+          background: darkMode ? '#0d0d0d' : '#fff',
           color: darkMode ? '#fff' : '#000',
-          backdrop: `rgba(0,0,0,0.8)`,
         });
-        setFormData({ name: '', email: '', phone: '', message: '' });
+        
+        // Reset Form
+        setFormData({ subject: '', description: '', category: 'withdrawal' });
         setShowModal(false);
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.message || error.message || 'Failed to submit.';
-      await Swal.fire({
+      Swal.fire({
         icon: 'error',
         title: 'Submission Failed',
-        text: errorMsg,
+        text: error.response?.data?.message || 'Something went wrong',
         confirmButtonColor: '#ef4444',
         background: darkMode ? '#0d0d0d' : '#fff',
         color: darkMode ? '#fff' : '#000',
-        backdrop: `rgba(0,0,0,0.8)`,
       });
     } finally {
       setLoading(false);
@@ -68,114 +82,108 @@ function AffiliateSupport() {
   return (
     <div className={`space-y-6 transition-colors duration-500 ${darkMode ? "text-white" : "text-slate-900"}`}>
       
-      {/* Tabs */}
-      <div className={`flex flex-wrap gap-2 border rounded-xl p-1 transition-colors 
-        ${darkMode ? "bg-black border-gray-800" : "bg-gray-100 border-gray-200"}`}>
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`flex-1 min-w-[80px] px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${
-              activeTab === tab.id
-                ? 'bg-[#f99616] text-white shadow-lg'
-                : darkMode ? 'text-gray-500 hover:text-white hover:bg-white/5' : 'text-gray-400 hover:text-slate-900 hover:bg-white'
-            }`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* 🚀 MAIN INTERFACE */}
+      <div className={`rounded-3xl border p-12 flex flex-col items-center justify-center text-center transition-all duration-500
+        ${darkMode ? "bg-[#0d0d0d] border-gray-800" : "bg-white border-gray-100 shadow-xl"}`}>
+        
+        <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${darkMode ? "bg-white/5" : "bg-gray-50"}`}>
+          <AlertCircle size={40} className="text-[#f99616]" />
+        </div>
+
+        <h3 className="text-2xl font-black uppercase italic tracking-tighter mb-2">
+          Need <span className="text-[#f99616]">Assistance?</span>
+        </h3>
+        <p className="text-xs text-gray-500 max-w-sm mx-auto mb-8 font-medium leading-relaxed">
+          If you're facing any issues with withdrawals, deposits, or account access, our support team is ready to help 24/7.
+        </p>
+
+        <button 
+          onClick={() => setShowModal(true)} 
+          className="px-10 py-4 bg-[#f99616] hover:bg-[#e88914] text-black rounded-2xl font-black uppercase text-[11px] tracking-[2px] shadow-xl shadow-orange-500/20 transition-all active:scale-95 flex items-center gap-3"
+        >
+          <Plus size={18} strokeWidth={3} /> Create New Support Ticket
+        </button>
       </div>
 
-      {/* Content Area */}
-      {tabs.map((tab) => (
-        <div
-          key={tab.id}
-          className={`rounded-xl border p-6 shadow-lg transition-all duration-500
-            ${darkMode ? "bg-black border-gray-800" : "bg-white border-gray-100"}`}
-          style={{ display: activeTab === tab.id ? 'block' : 'none' }}
-        >
-          <h4 className={`text-sm font-black uppercase tracking-widest mb-4 italic ${darkMode ? "text-white" : "text-slate-800"}`}>
-            {tab.content}
-          </h4>
-          {tab.id === 'requests' ? (
-            <>
-              <div className="text-center py-8 text-gray-500 text-[10px] font-bold uppercase tracking-widest">
-                No Data Found
-              </div>
-              <button
-                onClick={() => setShowModal(true)}
-                className="inline-flex items-center justify-center h-12 px-6 py-2 w-full sm:w-auto rounded-xl text-[10px] font-black uppercase tracking-widest bg-[#f99616] hover:bg-[#e88914] text-white transition-all active:scale-95 shadow-lg shadow-orange-500/10"
-              >
-                Create New Support Ticket
-              </button>
-            </>
-          ) : null}
-        </div>
-      ))}
-
-      {/* Modal */}
+      {/* 🚀 CREATE TICKET MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-          <div className={`border rounded-2xl p-6 md:p-8 w-full max-w-md relative shadow-2xl animate-in zoom-in-95 duration-200 transition-colors
-            ${darkMode ? "bg-[#0d0d0d] border-gray-800" : "bg-white border-gray-200"}`}>
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[110] p-4">
+          <div className={`border rounded-[2.5rem] p-8 md:p-10 w-full max-w-lg relative shadow-2xl animate-in zoom-in-95 duration-300
+            ${darkMode ? "bg-[#0a0a0a] border-gray-800" : "bg-white border-gray-200"}`}>
             
-            <button
-              className="absolute top-4 right-4 text-gray-500 hover:text-[#f99616] transition-colors"
+            <button 
+              className="absolute top-8 right-8 text-gray-500 hover:text-[#f99616] transition-colors" 
               onClick={() => setShowModal(false)}
-              disabled={loading}
             >
-              <X size={24} />
+              <X size={28} />
             </button>
 
-            <h3 className={`text-xl font-black uppercase italic tracking-tighter mb-6 ${darkMode ? "text-white" : "text-slate-900"}`}>
-              Create Support <span className="text-[#f99616]">Ticket</span>
-            </h3>
+            <div className="mb-8">
+              <h3 className="text-2xl font-black uppercase italic tracking-tighter mb-1">
+                New Support <span className="text-[#f99616]">Ticket</span>
+              </h3>
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-[2px]">Helpdesk Protocol</p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {[
-                { name: 'name', type: 'text', placeholder: 'Your Name' },
-                { name: 'email', type: 'email', placeholder: 'Your Email' },
-                { name: 'phone', type: 'number', placeholder: 'Your Phone Number' }
-              ].map((input) => (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Category Dropdown */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1">Issue Category</label>
+                <div className="relative">
+                   <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className={`w-full h-14 px-4 rounded-2xl border outline-none font-bold text-sm cursor-pointer appearance-none transition-all
+                      ${darkMode ? "bg-black border-gray-800 text-white focus:border-[#f99616]" : "bg-gray-50 border-gray-200 text-slate-900 focus:border-[#f99616]"}`}
+                  >
+                    {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.label}</option>)}
+                  </select>
+                  <Tag size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Subject */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1">Brief Subject</label>
                 <input
-                  key={input.name}
-                  type={input.type}
-                  name={input.name}
-                  placeholder={input.placeholder}
-                  value={formData[input.name]}
+                  type="text"
+                  name="subject"
+                  placeholder="e.g. Withdrawal pending for 24h"
+                  value={formData.subject}
                   onChange={handleChange}
                   required
-                  disabled={loading}
-                  className={`w-full h-12 px-4 rounded-xl border outline-none transition-all disabled:opacity-50 font-bold text-sm
-                    ${darkMode 
-                      ? "bg-black border-gray-800 text-white focus:border-[#f99616]" 
-                      : "bg-gray-50 border-gray-200 text-slate-900 focus:border-[#f99616]"}`}
+                  className={`w-full h-14 px-4 rounded-2xl border outline-none font-bold text-sm transition-all
+                    ${darkMode ? "bg-black border-gray-800 text-white focus:border-[#f99616]" : "bg-gray-50 border-gray-200 text-slate-900 focus:border-[#f99616]"}`}
                 />
-              ))}
-              
-              <textarea
-                name="message"
-                placeholder="Your Message"
-                value={formData.message}
-                onChange={handleChange}
-                required
-                disabled={loading}
-                className={`w-full px-4 py-3 rounded-xl border h-32 resize-none outline-none transition-all disabled:opacity-50 font-bold text-sm
-                  ${darkMode 
-                    ? "bg-black border-gray-800 text-white focus:border-[#f99616]" 
-                    : "bg-gray-50 border-gray-200 text-slate-900 focus:border-[#f99616]"}`}
-              />
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1">Detailed Description</label>
+                <textarea
+                  name="description"
+                  placeholder="Provide all necessary details (Transaction IDs, dates, etc.)"
+                  value={formData.description}
+                  onChange={handleChange}
+                  required
+                  className={`w-full p-5 rounded-2xl border h-40 resize-none outline-none font-bold text-sm transition-all
+                    ${darkMode ? "bg-black border-gray-800 text-white focus:border-[#f99616]" : "bg-gray-50 border-gray-200 text-slate-900 focus:border-[#f99616]"}`}
+                />
+              </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full h-14 rounded-2xl font-black uppercase tracking-widest text-white transition-all flex items-center justify-center shadow-lg active:scale-95 ${
-                  loading
-                    ? 'bg-gray-800 cursor-not-allowed text-gray-500'
-                    : 'bg-[#f99616] hover:bg-[#e88914] shadow-orange-500/10'
+                className={`w-full h-16 rounded-2xl font-black uppercase tracking-[2px] text-black transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95 mt-4 ${
+                  loading ? 'bg-gray-800 cursor-not-allowed text-gray-500' : 'bg-[#f99616] hover:bg-[#e88914] shadow-orange-500/20'
                 }`}
               >
-                {loading ? 'Processing...' : 'Submit Ticket'}
+                {loading ? <Loader2 className="animate-spin" /> : (
+                  <>
+                    <Send size={18} className="rotate-[-45deg]" /> Transmit Ticket
+                  </>
+                )}
               </button>
             </form>
           </div>
@@ -184,9 +192,5 @@ function AffiliateSupport() {
     </div>
   );
 }
-
-const X = ({ size }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-);
 
 export default AffiliateSupport;

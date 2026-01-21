@@ -1,16 +1,22 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import logo from "../assets/logo.png"; 
-import { useTheme } from "../context/ThemeContext"; // 🚀 Added Logic
+import { useTheme } from "../context/ThemeContext";
 
 function AffiliateSidebar({ navItems, activeComponent, setActiveComponent, onClose }) {
-  const { darkMode } = useTheme(); // 🚀 Hook for theme check
+  const { darkMode } = useTheme();
+
+  // 🚀 Navbar wala same style logic
+  const logoStyle = {
+    filter: darkMode ? "none" : "invert(1)",
+    transition: "filter 0.3s ease"
+  };
 
   return (
     <aside className={`w-full h-full flex flex-col backdrop-blur-xl relative transition-colors duration-500 border-r
       ${darkMode ? "bg-black border-gray-800" : "bg-white border-gray-200 shadow-xl"}`}>
       
-      {/* 🚀 CLOSE BUTTON */}
+      {/* CLOSE BUTTON */}
       <button 
         onClick={onClose} 
         className={`lg:hidden absolute right-4 top-5 p-2 transition-colors z-50
@@ -21,13 +27,13 @@ function AffiliateSidebar({ navItems, activeComponent, setActiveComponent, onClo
 
       <div className="p-6">
         
-        {/* 🚀 LOGO SECTION */}
-        <div className="flex items-center px-2 mb-6">
+        {/* 🚀 LOGO SECTION (Navbar Reference Applied) */}
+        <div className="flex items-center px-2 mb-8">
           <img 
             src={logo} 
             alt="BINOVERA" 
-            className={`w-8 md:w-100 h-auto object-contain brightness-110 
-              ${!darkMode ? "invert-0 contrast-125" : ""}`} // Light mode mein logo clarity
+            className="h-24 w-auto object-contain" // Height adjust ki hai taaki clean dikhe
+            style={logoStyle} 
           />
         </div>
 
@@ -43,7 +49,7 @@ function AffiliateSidebar({ navItems, activeComponent, setActiveComponent, onClo
                 }}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 border
                   ${isActive
-                    ? 'bg-[#f99616]/10 text-[#f99616] border-[#f99616]/30 font-bold shadow-sm'
+                    ? 'bg-[#f99616]/10 text-[#f99616] border-[#f99616]/30 font-bold'
                     : darkMode 
                       ? 'text-gray-400 border-transparent hover:text-white hover:bg-gray-800/50' 
                       : 'text-gray-500 border-transparent hover:text-black hover:bg-gray-50'
@@ -59,7 +65,7 @@ function AffiliateSidebar({ navItems, activeComponent, setActiveComponent, onClo
         </nav>
       </div>
 
-      {/* 🚀 BOTTOM FOOTER */}
+      {/* BOTTOM FOOTER */}
       <div className={`mt-auto p-6 border-t transition-colors
         ${darkMode ? "border-gray-900/50" : "border-gray-100"}`}>
           <span className={`text-[10px] font-bold uppercase tracking-[2px] 

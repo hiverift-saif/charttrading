@@ -34,56 +34,68 @@ const AdminFinance = () => {
     }
   };
 
-  const handleStatusUpdate = async (id, action) => {
-    const result = await Swal.fire({
-      title: `Confirm ${action === 'approve' ? 'Approval' : 'Rejection'}?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: action === 'approve' ? '#10b981' : '#ef4444',
-      cancelButtonColor: '#1a1a1a',
-      confirmButtonText: `Yes, ${action} it!`,
+const handleStatusUpdate = async (id, action) => {
+  // 1. Pehle Confirmation Pucho
+  const result = await Swal.fire({
+    title: `Confirm ${action === 'approve' ? 'Approval' : 'Rejection'}?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: action === 'approve' ? '#10b981' : '#ef4444',
+    cancelButtonColor: '#1a1a1a',
+    confirmButtonText: `Yes, ${action} it!`,
+    background: darkMode ? '#0d0d0d' : '#fff',
+    color: darkMode ? '#fff' : '#000'
+  });
+
+  if (result.isConfirmed) {
+    // 🚀 2. Yahan Loading start karo
+    Swal.fire({
+      title: 'Updating Balance...',
+      html: 'Processing transaction on secure node.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(); // Ye loading start karega
+      },
       background: darkMode ? '#0d0d0d' : '#fff',
       color: darkMode ? '#fff' : '#000'
     });
 
-    if (result.isConfirmed) {
-      Swal.fire({
-        title: 'Processing...',
-        didOpen: () => Swal.showLoading(),
+    try {
+      const token = localStorage.getItem("admin_token");
+      const response = await axios.put(
+        `${API_CONFIG.baseURL}/admin/deposit/${id}/${action}`, 
+        {}, 
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+
+      // 🚀 3. SUCCESS: Jaise hi response aaye, LOADER HATAO
+      // Swal.fire ka naya call purane loader ko automatic replace kar dega
+      await Swal.fire({
+        icon: 'success',
+        title: 'Action Executed!',
+        text: `The deposit has been ${action}d successfully.`,
+        timer: 1500, // 1.5 sec baad khud gayab ho jayega
+        showConfirmButton: false,
         background: darkMode ? '#0d0d0d' : '#fff',
-        color: darkMode ? '#fff' : '#000',
-        allowOutsideClick: false
+        color: darkMode ? '#fff' : '#000'
       });
 
-      try {
-        const token = localStorage.getItem("admin_token");
-        await axios.put(
-          `${API_CONFIG.baseURL}/admin/deposit/${id}/${action}`, 
-          {}, 
-          { headers: { Authorization: `Bearer ${token}` }}
-        );
+      // 🚀 4. List refresh karo taki wo row gayab ho jaye
+      fetchDeposits();
 
-        Swal.fire({
-          icon: 'success',
-          title: 'Updated!',
-          text: `Deposit has been ${action}d.`,
-          background: darkMode ? '#0d0d0d' : '#fff',
-          color: darkMode ? '#fff' : '#000',
-          timer: 2000,
-          showConfirmButton: false
-        });
-        fetchDeposits(); // List refresh
-      } catch (err) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Update Failed',
-          text: err.response?.data?.message || 'Error processing transaction.',
-          background: darkMode ? '#0d0d0d' : '#fff',
-          color: darkMode ? '#fff' : '#000'
-        });
-      }
+    } catch (err) {
+      // 🚀 5. ERROR: Agar fail ho jaye, tab bhi loader hata kar error dikhao
+      Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: err.response?.data?.message || 'Error processing transaction.',
+        background: darkMode ? '#0d0d0d' : '#fff',
+        color: darkMode ? '#fff' : '#000',
+        confirmButtonColor: '#f99616'
+      });
     }
-  };
+  }
+};
 
   if (loading) {
     return (

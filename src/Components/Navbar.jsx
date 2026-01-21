@@ -163,8 +163,12 @@ const Navbar = ({ onOpenAuth }) => {
       </div>
 
       {/* --- CENTER SECTION (Desktop Logo) --- */}
+{/* --- CENTER SECTION (Desktop Logo) --- */}
       <div className="absolute left-1/2 -translate-x-1/2 hidden md:block">
-        <Link to="/">
+        <Link 
+          to="/" 
+          onClick={() => setIsMenuOpen(false)} // 🚀 FIXED: Click par menu close hoga
+        >
           <img src={logo} alt="logo" className="h-32 w-auto object-contain" style={logoStyle} />
         </Link>
       </div>
@@ -209,7 +213,7 @@ const Navbar = ({ onOpenAuth }) => {
 
       <MobileMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
-      <style>{`
+      <style>{` 
         body { top: 0px !important; }
         .goog-te-banner-frame, .goog-tooltip { display: none !important; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }

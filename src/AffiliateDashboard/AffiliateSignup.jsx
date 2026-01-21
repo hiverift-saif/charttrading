@@ -62,6 +62,7 @@ export default function AffiliateSignup() {
     const payload = {
       email: formData.email,
       password: formData.password,
+      role: "affiliate",
       referralCode: formData.referralCode || undefined,
     };
 

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, Loader2 ,UserPlus, LogIn, Chrome, ShieldCheck} from "lucide-react"; 
-import API_CONFIG from '../config'; 
+import { useNavigate, useSearchParams } from "react-router-dom"; // ← added useSearchParams
+import { Eye, EyeOff, Mail, Lock, Loader2, UserPlus, LogIn, Chrome, ShieldCheck, Link2 } from "lucide-react";
+import API_CONFIG from '../config';
 import { useTheme } from "../context/ThemeContext";
 
 const Sidebar = () => {
   const { darkMode } = useTheme();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams(); // ← for reading ?ref= from URL
 
   const [activeTab, setActiveTab] = useState("signup");
   const [showLoginPass, setShowLoginPass] = useState(false);
@@ -19,12 +20,21 @@ const Sidebar = () => {
 
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [referralCode, setReferralCode] = useState("");   // ← NEW
   const [currency, setCurrency] = useState("INR");
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [signupSubmitted, setSignupSubmitted] = useState(false);
 
+  const [signupSubmitted, setSignupSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
+
+  // Auto-fill referral code from URL (?ref=ABC123)
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) {
+      setReferralCode(ref);
+    }
+  }, [searchParams]);
 
   const handleLoginSubmit = async () => {
     setLoginSubmitted(true);
@@ -33,6 +43,7 @@ const Sidebar = () => {
       setIsLoading(true);
       try {
         const response = await fetch(`${API_CONFIG.baseURL}/auth/login`, {
+          
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: loginEmail, password: loginPassword }),
@@ -41,7 +52,7 @@ const Sidebar = () => {
         if (response.ok) {
           localStorage.setItem('access_token', data?.result?.accessToken);
           localStorage.setItem('user_name', data.user?.name || "Trader");
-          localStorage.setItem('user_email', loginEmail); 
+          localStorage.setItem('user_email', loginEmail);
           window.location.href = '/trading';
         } else {
           setApiError(data.message || "Invalid email or password.");
@@ -60,21 +71,30 @@ const Sidebar = () => {
     if (signupEmail && signupPassword && acceptTerms) {
       setIsLoading(true);
       try {
+        const payload = {
+          email: signupEmail,
+          password: signupPassword,
+          name: signupEmail.split('@')[0],
+        };
+
+        // Add referralCode only if it exists
+        if (referralCode.trim()) {
+          payload.referralCode = referralCode.trim();
+        }
+
         const response = await fetch(`${API_CONFIG.baseURL}/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            email: signupEmail, 
-            password: signupPassword,
-            name: signupEmail.split('@')[0]
-          }),
+          body: JSON.stringify(payload),
         });
+
         const data = await response.json();
         if (response.ok) {
           setActiveTab("login");
           setSignupSubmitted(false);
           setSignupEmail("");
           setSignupPassword("");
+          setReferralCode(""); // optional: clear after success
         } else {
           setApiError(data.message || "Registration failed.");
         }
@@ -89,7 +109,7 @@ const Sidebar = () => {
   return (
     <div className={`fixed right-0 top-0 h-full w-80 shadow-2xl z-[60] flex flex-col font-sans border-l transition-colors duration-500
       ${darkMode ? "bg-[#120025] text-white border-white/5" : "bg-white text-slate-900 border-gray-200"}`}>
-      
+
       {/* Header */}
       <div className={`p-6 pb-4 z-10 ${darkMode ? "bg-[#120025]" : "bg-white"}`}>
         <div className="flex gap-3">
@@ -101,8 +121,8 @@ const Sidebar = () => {
                 : (darkMode ? "bg-transparent text-gray-400 border border-gray-700 hover:text-white" : "bg-transparent text-gray-500 border border-gray-200 hover:bg-gray-50")
             }`}
           >
-<UserPlus size={16} /> Sign Up          </button>
-
+            <UserPlus size={16} /> Sign Up
+          </button>
           <button
             onClick={() => { setActiveTab("login"); setApiError(""); }}
             className={`flex-1 py-2.5 px-4 text-sm font-medium rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
@@ -111,7 +131,8 @@ const Sidebar = () => {
                 : (darkMode ? "bg-transparent text-gray-400 border border-gray-700 hover:text-white" : "bg-transparent text-gray-500 border border-gray-200 hover:bg-gray-50")
             }`}
           >
-<LogIn size={16} /> Log In          </button>
+            <LogIn size={16} /> Log In
+          </button>
         </div>
         {apiError && <p className="text-red-500 text-[10px] mt-2 text-center font-bold uppercase tracking-tight animate-pulse">{apiError}</p>}
       </div>
@@ -122,7 +143,7 @@ const Sidebar = () => {
           {/* LOGIN FORM */}
           <div className="w-1/2 h-full px-6 overflow-y-auto pb-10 custom-scrollbar">
             <h2 className="text-2xl font-bold mb-6 mt-2">Login to your account</h2>
-
+            {/* ... rest of login form remains exactly the same ... */}
             <div className="mb-4 relative group">
               <Mail className={`absolute left-3 top-3.5 transition-colors ${darkMode ? "text-gray-500 group-focus-within:text-purple-400" : "text-gray-400 group-focus-within:text-purple-600"}`} size={18} />
               <input
@@ -177,7 +198,7 @@ const Sidebar = () => {
             </button>
           </div>
 
-          {/* SIGN UP FORM */}
+          {/* SIGN UP FORM – with referral code added */}
           <div className="w-1/2 h-full px-6 overflow-y-auto pb-10 custom-scrollbar">
             <h2 className="text-2xl font-bold mb-6 mt-2">Open an account</h2>
 
@@ -185,7 +206,7 @@ const Sidebar = () => {
               <Mail className={`absolute left-3 top-3.5 transition-colors ${darkMode ? "text-gray-500 group-focus-within:text-purple-400" : "text-gray-400 group-focus-within:text-purple-600"}`} size={18} />
               <input
                 type="email"
-                placeholder="Email (login)"
+                placeholder="Email"
                 value={signupEmail}
                 onChange={(e) => setSignupEmail(e.target.value)}
                 className={`w-full p-3 pl-10 rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm
@@ -210,8 +231,21 @@ const Sidebar = () => {
               {signupSubmitted && !signupPassword && <p className="text-red-500 text-xs mt-1">This field is required</p>}
             </div>
 
+            {/* Referral Code Field – NEW */}
+            <div className="mb-4 relative group">
+              <Link2 className={`absolute left-3 top-3.5 transition-colors ${darkMode ? "text-gray-500 group-focus-within:text-purple-400" : "text-gray-400 group-focus-within:text-purple-600"}`} size={18} />
+              <input
+                type="text"
+                placeholder="Referral Code (optional)"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value)}
+                className={`w-full p-3 pl-10 rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm font-mono tracking-wide
+                  ${darkMode ? "bg-[#2d1f4a] text-purple-300 placeholder:text-gray-500" : "bg-gray-100 text-purple-700 placeholder:text-gray-400"}`}
+              />
+            </div>
+
             <div className="mb-4">
-              <select 
+              <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
                 className={`w-full p-3 rounded-lg outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer text-sm
@@ -259,6 +293,7 @@ const Sidebar = () => {
               Continue with Google
             </button>
           </div>
+
         </div>
       </div>
     </div>

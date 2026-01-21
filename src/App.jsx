@@ -53,6 +53,8 @@ import FastPaymentsPage from "./Components/FastPayments";
 import OffersRewardsPage from "./Components/OffersRewards";
 import CopyTradingPage from "./Components/CopyTrading";
 import TelegramSupportPage from "./Components/TelegramSupportPage";
+import Forgetpass from "./Components/Forgetpass";
+import KYCPage from "./Components/KYCPage";
 
 // --- 🚀 1. GLOBAL AUTO-LOGOUT GUARD ---
 // Ye component har 10 second mein check karega ki koi token expire toh nahi hua
@@ -107,39 +109,51 @@ const GlobalAuthGuard = () => {
 };
 
 // --- 2. MAIN LAYOUT LOGIC ---
+// --- 2. MAIN LAYOUT LOGIC ---
 function MainLayout() {
   const { darkMode } = useTheme();
   const location = useLocation();
 
+  // 🚀 Precise Path Logic
   const isHomePage = location.pathname === "/";
   const isTradingPage = location.pathname.toLowerCase().startsWith("/trading");
-  const isAffiliatePage = location.pathname.toLowerCase().includes("affiliate");
   const isAdminPage = location.pathname.toLowerCase().startsWith("/admin");
   
-  // Layout Controls
-  const hideMainLayout = isTradingPage || isAffiliatePage || isAdminPage;
+  // Dashboard identification
+  const isAffiliateDashboard = location.pathname.toLowerCase().includes("affiliatedashboard");
+  
+  // Portal pages identification (Landing, Login, Signup)
+  const isAffiliatePortal = (
+    location.pathname.toLowerCase() === "/affiliates" || 
+    location.pathname.toLowerCase().includes("affiliatelogin") || 
+    location.pathname.toLowerCase().includes("affiliatesignup")
+  ) && !isAffiliateDashboard;
+
+  // Main Layout hide logic (Dashboards par sab hide rahega)
+  const hideMainLayout = isTradingPage || isAffiliateDashboard || isAdminPage;
 
   return (
     <div className={`flex flex-col min-h-screen w-full transition-colors duration-500 overflow-x-hidden 
       ${darkMode ? "bg-[#1b1817] text-white" : "bg-gray-100 text-slate-900"}`}>
       
-      {/* 1. Normal Navbar (Hidden on Trading, Affiliate, Admin) */}
-      {!hideMainLayout && (
+      {/* 1. Normal Navbar (Sirf non-dashboard aur non-affiliate pages par) */}
+      {!hideMainLayout && !isAffiliatePortal && (
         <div className={`fixed top-0 left-0 w-full z-50 h-[60px] border-b transition-colors
           ${darkMode ? "bg-black/80 border-zinc-800" : "bg-white/80 border-gray-200"} backdrop-blur-md`}>
           <Navbar />
         </div>
       )}
 
-      {/* 2. Affiliate Specific Navbar */}
-      {isAffiliatePage && !isTradingPage && (
-        <div className="fixed top-0 left-0 w-full z-50">
-          <Affiliatenavbar/>
+      {/* 2. Affiliate Specific Navbar (Sirf Landing, Login, Signup par) */}
+      {isAffiliatePortal && (
+        <div className="fixed top-0 left-0 w-full z-[100]">
+          <Affiliatenavbar />
         </div>
       )}
 
       {/* Main Content Area */}
-      <div className={`flex flex-1 ${(!hideMainLayout || isAffiliatePage) ? 'pt-[60px]' : ''}`}>
+      {/* Padding adjustment: Dashboards par 0, Navbars hone par pt-[60px] */}
+      <div className={`flex flex-1 ${(!hideMainLayout || isAffiliatePortal) ? 'pt-[60px]' : ''}`}>
         <main className={`flex-1 flex flex-col min-w-0 relative transition-colors duration-500
           ${darkMode ? 'bg-black' : 'bg-white'} ${isHomePage ? 'xl:mr-80' : ''}`}>
           
@@ -154,8 +168,9 @@ function MainLayout() {
               <Route path="/AffiliateSignup" element={<AffiliateSignup />} />
               <Route path="/Affiliates" element={<Affiliates/>} />
               <Route path="/DemoTradingDashboard" element = {<DemoTradingDashboard/>}/>
+              <Route path="/forgetpass" element= {<Forgetpass/>}/>
               
-              {/* 🚀 PROTECTED ROUTES */}
+              {/* PROTECTED ROUTES */}
               <Route path="/admin/*" element={
                   <ProtectedRoute tokenKey="admin_token" redirectTo="/adminlogin">
                     <AdminDashboard />
@@ -199,21 +214,21 @@ function MainLayout() {
               <Route path="/informationdisclosure" element={<Informationdisclosure />} />
               <Route path="/riskstatement" element={<RiskStatement />} />
               <Route path="/refundpolicy" element={<RefundPolicy />} />
+              <Route path="/KYCPage" element={<KYCPage />} />
 
               <Route path="/assets" element={<MultipleAssetsPage />} />
-  <Route path="/payments" element={<FastPaymentsPage />} />
-  <Route path="/rewards" element={<OffersRewardsPage />} />
-  
-  <Route path="/copy-trading" element={<CopyTradingPage />} />
-  <Route path="/TelegramSupportPage" element={<TelegramSupportPage/>}/>
-
+              <Route path="/payments" element={<FastPaymentsPage />} />
+              <Route path="/rewards" element={<OffersRewardsPage />} />
+              
+              <Route path="/copy-trading" element={<CopyTradingPage />} />
+              <Route path="/TelegramSupportPage" element={<TelegramSupportPage/>}/>
             </Routes>
           </div>
           
           {!hideMainLayout && <Footer />}
         </main>
 
-        {/* 🚀 Sidebar Fix (Z-Index balanced with Navbar) */}
+        {/* Sidebar Fix */}
         {isHomePage && (
           <aside className={`hidden xl:block transition-colors border-l w-80 fixed right-0 top-[60px] h-[calc(100vh-60px)] 
             z-[100] ${darkMode ? "border-zinc-800 bg-[#1b1817]" : "border-gray-200 bg-gray-50"}`}>

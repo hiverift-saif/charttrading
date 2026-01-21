@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import AffiliateSidebar from "./AffiliateSidebar";
 import AffiliateHeader from "./AffiliateHeader";
 import AffiliateDashboardContent from "./AffiliateDashboardContent";
@@ -18,15 +19,17 @@ import {
   CreditCard, Image, Send, LifeBuoy, TrendingUp, Users, X 
 } from 'lucide-react';
 
-import { useTheme } from "../context/ThemeContext"; // 🚀 Added Logic
+import { useTheme } from "../context/ThemeContext";
 
 const AffiliateDashboard = () => {
-  const { darkMode } = useTheme(); // 🚀 Theme state access
-  const [activeComponent, setActiveComponent] = useState('dashboard');
+  const { darkMode } = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isSidebarOpen, setSidebarOpen] = useState(false); 
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
+  // 🚀 Har nav item ki 'id' uske URL path se match honi chahiye
   const navItems = [
     { label: 'Dashboard', id: 'dashboard', icon: LayoutDashboard },
     { label: 'Profile', id: 'profile', icon: User },
@@ -41,22 +44,9 @@ const AffiliateDashboard = () => {
     { label: 'Sub Affiliate', id: 'subaffiliate', icon: Users },
   ];
 
-  const renderComponent = () => {
-    switch (activeComponent) {
-      case 'dashboard': return <AffiliateDashboardContent key="dashboard" />;
-      case 'profile': return <AffiliateProfile key="profile" />;
-      case 'statistics': return <AffiliateStatistics key="statistics" />;
-      case 'links': return <AffiliateLinks key="links" />;
-      case 'analytics': return <AffiliateAnalytics key="analytics" />;
-      case 'payments': return <Affiliatepayments key="payments" />;
-      case 'promo': return <AffiliatePromo key="promo" />;
-      case 'telegram': return <AffiliateTelegram key="telegram" />;
-      case 'support': return <AffiliateSupport key="support" />;
-      case 'programs': return <AffiliatePrograms key="programs" />;
-      case 'subaffiliate': return <Subaffiliate key="subaffiliate" />;
-      default: return <AffiliateDashboardContent key="default" />;
-    }
-  };
+  // URL se active component nikalne ka logic
+  // e.g. /AffiliateDashboard/profile -> 'profile'
+  const currentPath = location.pathname.split('/').pop() || 'dashboard';
 
   return (
     <div className={`flex h-screen w-full overflow-hidden font-sans relative transition-colors duration-500
@@ -84,9 +74,9 @@ const AffiliateDashboard = () => {
 
         <AffiliateSidebar 
           navItems={navItems} 
-          activeComponent={activeComponent} 
+          activeComponent={currentPath} // 🚀 Props from URL
           setActiveComponent={(id) => {
-            setActiveComponent(id);
+            navigate(`/AffiliateDashboard/${id}`); // 🚀 Navigate via URL
             setSidebarOpen(false); 
           }}
           onClose={() => setSidebarOpen(false)} 
@@ -98,9 +88,8 @@ const AffiliateDashboard = () => {
         ${darkMode ? "bg-black" : "bg-white"}`}>
         
         <AffiliateHeader 
-          balance={0.00} 
           onMenuClick={toggleSidebar} 
-          pageTitle={navItems.find(n => n.id === activeComponent)?.label}
+          pageTitle={navItems.find(n => n.id === currentPath)?.label || "Dashboard"}
         />
         
         <main className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
@@ -108,14 +97,27 @@ const AffiliateDashboard = () => {
           <div className="mb-8 animate-in fade-in slide-in-from-left-4 duration-500">
              <h1 className={`text-xl md:text-3xl font-black uppercase tracking-tight transition-colors
                ${darkMode ? "text-white" : "text-slate-900"}`}>
-               {navItems.find(n => n.id === activeComponent)?.label}
+               {navItems.find(n => n.id === currentPath)?.label || "Dashboard"}
              </h1>
              <div className="h-1.5 w-16 bg-[#f99616] mt-2 rounded-full shadow-[0_0_15px_rgba(249,150,22,0.4)]"></div>
           </div>
 
-          {/* Render Area */}
+          {/* 🚀 Render Area via Nested Routes */}
           <div className="animate-in fade-in zoom-in-95 duration-500">
-            {renderComponent()}
+            <Routes>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<AffiliateDashboardContent />} />
+              <Route path="profile" element={<AffiliateProfile />} />
+              <Route path="statistics" element={<AffiliateStatistics />} />
+              <Route path="links" element={<AffiliateLinks />} />
+              <Route path="analytics" element={<AffiliateAnalytics />} />
+              <Route path="payments" element={<Affiliatepayments />} />
+              <Route path="promo" element={<AffiliatePromo />} />
+              <Route path="telegram" element={<AffiliateTelegram />} />
+              <Route path="support" element={<AffiliateSupport />} />
+              <Route path="programs" element={<AffiliatePrograms />} />
+              <Route path="subaffiliate" element={<Subaffiliate />} />
+            </Routes>
           </div>
         </main>
       </div>

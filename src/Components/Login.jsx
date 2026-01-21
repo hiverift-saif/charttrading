@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import API_CONFIG from '../config'; 
-import { useTheme } from "../context/ThemeContext"; // 1. Context Import
+import { useTheme } from "../context/ThemeContext";
 
 const Login = () => {
-  const { darkMode } = useTheme(); // 2. darkMode state li
+  const { darkMode } = useTheme();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -39,63 +39,73 @@ const Login = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-// ... baki imports same hain
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
-  setSuccess("");
-  setErrors({});
-  
-  if (!validateForm()) return;
 
-  setIsLoading(true);
-  try {
-    const response = await fetch(`${API_CONFIG.baseURL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password
-      }),
-    });
-
-    const data = await response.json();
-console.log("jfhsadfaf",data)
-    if (response.ok) {
-      // 🚀 FIX: Aapke API response ke hisaab se token yahan hai
-      const token = data?.result?.accessToken; 
-      
-      if (token) {
-        localStorage.setItem('access_token', token);
-        // Agar API se user name nahi aa raha toh email ka pehla part use kar lo
-        localStorage.setItem('user_name', data.user?.name || formData.email.split('@')[0]); 
-        localStorage.setItem('user_email', formData.email); 
-
-        // Remember Me Logic
-        if (rememberMe) {
-          localStorage.setItem("rememberedEmail", formData.email);
-        } else {
-          localStorage.removeItem("rememberedEmail");
-        }
-
-        setSuccess("Login successful! Redirecting...");
-        setTimeout(() => {
-          window.location.href = '/trading'; 
-        }, 1500);
-      } else {
-        setError("Token not found in response.");
-      }
-    } else {
-      setError(data.message || "Invalid credentials. Please try again.");
+  // 🚀 Naya: Google Login Handler
+  const handleGoogleLogin = async () => {
+    setError("");
+    setIsLoading(true);
+    try {
+      // Direct redirect to backend google route
+      // Agar aapka backend popup handle karta hai toh fetch use karein
+      window.location.href = `${API_CONFIG.baseURL}/auth/google`;
+    } catch (err) {
+      setError("Google Login failed to initialize.");
+      setIsLoading(false);
     }
-  } catch (err) {
-    console.error("Login Error:", err); // Isse console mein asli error dikhega
-    setError("Network error. Please check your connection.");
-  } finally {
-    setIsLoading(false);
-  }
-};
-// ... baki code same rahega
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setErrors({});
+    
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const token = data?.result?.accessToken; 
+        
+        if (token) {
+          localStorage.setItem('access_token', token);
+          localStorage.setItem('user_name', data.user?.name || formData.email.split('@')[0]); 
+          localStorage.setItem('user_email', formData.email); 
+
+          if (rememberMe) {
+            localStorage.setItem("rememberedEmail", formData.email);
+          } else {
+            localStorage.removeItem("rememberedEmail");
+          }
+
+          setSuccess("Login successful! Redirecting...");
+          setTimeout(() => {
+            window.location.href = '/trading'; 
+          }, 1500);
+        } else {
+          setError("Token not found in response.");
+        }
+      } else {
+        setError(data.message || "Invalid credentials. Please try again.");
+      }
+    } catch (err) {
+      console.error("Login Error:", err);
+      setError("Network error. Please check your connection.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -109,14 +119,12 @@ console.log("jfhsadfaf",data)
     <div className={`min-h-screen flex items-center justify-center transition-colors duration-500 px-4 py-12 font-sans relative overflow-hidden
       ${darkMode ? "bg-black" : "bg-white"}`}>
       
-      {/* 🚀 Admin Dashboard Matching Glows */}
       <div className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] blur-[100px] rounded-full pointer-events-none transition-opacity
         ${darkMode ? "bg-[#f99616]/10 opacity-100" : "bg-[#f99616]/5 opacity-50"}`}></div>
       
       <div className={`w-full max-w-md backdrop-blur-xl border rounded-2xl p-8 shadow-2xl relative z-10 transition-all
         ${darkMode ? "bg-[#0d0d0d]/95 border-gray-800" : "bg-white border-gray-200 shadow-xl"}`}>
         
-        {/* Messages */}
         {success && (
           <div className="mb-6 p-4 bg-green-900/20 border border-green-500/50 rounded-xl flex items-center gap-3 animate-pulse">
             <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
@@ -139,9 +147,10 @@ console.log("jfhsadfaf",data)
           <p className={`${darkMode ? "text-white/40" : "text-gray-500"} text-sm`}>Login to manage your trading account</p>
         </div>
 
-        {/* Google Button */}
+        {/* 🚀 FIXED: Google Button Click Linked */}
         <button 
           type="button"
+          onClick={handleGoogleLogin}
           className={`w-full flex items-center justify-center gap-3 border font-medium py-3 rounded-xl transition-all duration-300 mb-6 backdrop-blur-sm group
             ${darkMode ? "bg-[#111111] border-gray-800 text-white hover:bg-[#1a1a1a] hover:border-[#f99616]/30" : "bg-gray-50 border-gray-200 text-black hover:bg-gray-100"}`}
           disabled={isLoading}
@@ -162,7 +171,6 @@ console.log("jfhsadfaf",data)
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-          {/* Email Field */}
           <div className="space-y-1">
             <label className={`text-xs ml-1 flex items-center gap-1 transition-colors ${darkMode ? "text-white/60" : "text-gray-600"}`}>
               Email
@@ -185,7 +193,6 @@ console.log("jfhsadfaf",data)
             </div>
           </div>
 
-          {/* Password Field */}
           <div className="space-y-1">
             <label className={`text-xs ml-1 flex items-center gap-1 transition-colors ${darkMode ? "text-white/60" : "text-gray-600"}`}>
               Password
@@ -215,7 +222,6 @@ console.log("jfhsadfaf",data)
             </div>
           </div>
 
-          {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between pt-1">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input 
@@ -232,7 +238,6 @@ console.log("jfhsadfaf",data)
             </a>
           </div>
 
-          {/* Submit Button */}
           <button 
             type="submit" 
             disabled={isLoading || !formData.email || !formData.password}

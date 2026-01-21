@@ -1,258 +1,237 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
-  ShieldAlert,
-  Check,
-  X,
   Loader2,
-  Calendar,
-  User,
-  Mail,
-  Wallet,
-  ExternalLink,
-  ShieldCheck,
-  Clock
-} from 'lucide-react';
-import API_CONFIG from '../config';
-import Swal from 'sweetalert2';
+  Eye,
+  Trash2,
+  Pencil,
+  X
+} from "lucide-react";
+import Swal from "sweetalert2";
+import API_CONFIG from "../config";
 import { useTheme } from "../context/ThemeContext";
 
 const AdminUserManagement = () => {
   const { darkMode } = useTheme();
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // modal states
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [editUser, setEditUser] = useState(null);
+
   useEffect(() => {
-    fetchAllUsers();
+    fetchUsers();
   }, []);
 
-  // ✅ Fetch ALL users (pending / approved / rejected)
-  const fetchAllUsers = async () => {
+  const fetchUsers = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("admin_token");
-
-      const response = await axios.get(
-        `${API_CONFIG.baseURL}/admin/users`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (response.data && Array.isArray(response.data.result)) {
-        setUsers(response.data.result);
-      } else if (Array.isArray(response.data)) {
-        setUsers(response.data);
-      } else {
-        setUsers([]);
-      }
-    } catch (err) {
-      console.error("Fetch Error:", err);
+      const res = await axios.get(`${API_CONFIG.baseURL}/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUsers(res.data?.result || []);
+    } catch {
       setUsers([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ KYC Action (approve / reject)
-  const handleKYCAction = async (user, action) => {
-    const newStatus = action === 'approve' ? 'approved' : 'rejected';
-
-    const result = await Swal.fire({
-      title: 'Confirm Action',
-      text: `Change KYC status to ${newStatus.toUpperCase()} for ${user.email}?`,
-      icon: 'question',
+  // 🗑️ delete user
+  const handleDelete = async (userId) => {
+    const confirm = await Swal.fire({
+      title: "Delete User?",
+      text: "This action cannot be undone",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: action === 'approve' ? '#f99616' : '#ef4444',
-      cancelButtonColor: '#1f1f1f',
-      confirmButtonText: `Yes, ${newStatus}`,
-      background: darkMode ? '#0d0d0d' : '#fff',
-      color: darkMode ? '#fff' : '#000'
+      confirmButtonColor: "#ef4444",
+      background: darkMode ? "#0d0d0d" : "#fff",
+      color: darkMode ? "#fff" : "#000",
     });
 
-    if (!result.isConfirmed) return;
+    if (!confirm.isConfirmed) return;
 
     try {
       const token = localStorage.getItem("admin_token");
-
-      await axios.put(
-        `${API_CONFIG.baseURL}/admin/user/${user._id}`,
-        { kycStatus: newStatus },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: `KYC updated to ${newStatus}`,
-        background: darkMode ? '#0d0d0d' : '#fff',
-        color: darkMode ? '#fff' : '#000',
-        timer: 1500,
-        showConfirmButton: false
+      await axios.delete(`${API_CONFIG.baseURL}/admin/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      fetchAllUsers();
-    } catch (err) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Update Failed',
-        text: err.response?.data?.message || 'Server error',
-        background: darkMode ? '#0d0d0d' : '#fff',
-        color: darkMode ? '#fff' : '#000'
-      });
+      Swal.fire("Deleted", "User removed", "success");
+      fetchUsers();
+    } catch {
+      Swal.fire("Error", "Delete failed", "error");
     }
   };
 
-  // ✅ Loader
+  // ✏️ update user
+  const handleUpdate = async () => {
+    try {
+      const token = localStorage.getItem("admin_token");
+      await axios.put(
+        `${API_CONFIG.baseURL}/admin/users/${editUser._id}`,
+        { role: editUser.role },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      Swal.fire("Updated", "User updated", "success");
+      setEditUser(null);
+      fetchUsers();
+    } catch {
+      Swal.fire("Error", "Update failed", "error");
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 w-full">
-        <Loader2 className="w-10 h-10 animate-spin text-[#f99616] mb-4" />
-        <p className={`${darkMode ? 'text-gray-500' : 'text-slate-400'} font-black uppercase tracking-[3px] text-[10px]`}>
-          Refreshing User Database...
-        </p>
+      <div className="flex justify-center items-center h-96">
+        <Loader2 className="animate-spin text-[#f99616]" size={40} />
       </div>
     );
   }
 
   return (
-    <div className={`w-full space-y-6 animate-in fade-in duration-500 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-bold uppercase italic tracking-wider">
-            User <span className="text-[#f99616]">Management</span>
-          </h2>
-          <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 italic ${darkMode ? 'text-gray-500' : 'text-slate-400'}`}>
-            Full User List & Verification Control
-          </p>
-        </div>
+    <>
+      <div className={`space-y-6 ${darkMode ? "text-white" : "text-slate-900"}`}>
+        <h2 className="text-xl font-black uppercase">
+          User <span className="text-[#f99616]">Management</span>
+        </h2>
 
-        <span className="bg-gray-800/50 text-gray-400 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase border border-gray-700">
-          Total: {users.length}
-        </span>
-      </div>
-
-      {/* Table */}
-      <div className={`border rounded-3xl overflow-hidden shadow-2xl transition-colors ${darkMode ? 'bg-[#0d0d0d] border-gray-800' : 'bg-white border-slate-200'}`}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className={`${darkMode ? 'bg-black/50 border-gray-800' : 'bg-slate-50 border-slate-100'} border-b`}>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">User Info</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">KYC Status</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Wallet</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Created At</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Action</th>
+        <div className="border rounded-3xl overflow-hidden">
+          <table className="w-full text-left">
+            <thead className="bg-slate-100 dark:bg-black">
+              <tr>
+                <th className="px-6 py-3 text-xs">User</th>
+                <th className="px-6 py-3 text-xs">Role</th>
+                <th className="px-6 py-3 text-xs text-center">Actions</th>
               </tr>
             </thead>
 
-            <tbody className={`divide-y ${darkMode ? 'divide-gray-900' : 'divide-slate-50'}`}>
+            <tbody>
               {users.map((u) => (
                 <tr
                   key={u._id}
-                  className={`transition-colors ${darkMode ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50/50'}`}
+                  className="border-t hover:bg-slate-50 dark:hover:bg-white/5"
                 >
-                  {/* User Info */}
+                  {/* user */}
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-xl border flex items-center justify-center font-black text-[#f99616] text-sm ${darkMode ? 'bg-black border-gray-800' : 'bg-slate-50 border-slate-200'}`}>
-                        {u.email?.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-xs">{u.email}</span>
-                        <span className="text-[8px] font-bold text-gray-500 uppercase">
-                          Role: {u.role}
-                        </span>
-                      </div>
-                    </div>
+                    <p className="font-bold text-sm">{u.email}</p>
+                    <p className="text-xs text-gray-400">
+                      ID: {u._id.slice(-6)}
+                    </p>
                   </td>
 
-                  {/* KYC Status */}
-                  <td className="px-6 py-4">
-                    <div
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border
-                        ${
-                          u.kycStatus === 'approved'
-                            ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                            : u.kycStatus === 'rejected'
-                            ? 'bg-red-500/10 text-red-500 border-red-500/20'
-                            : 'bg-orange-500/10 text-orange-500 border-orange-500/20 animate-pulse'
-                        }`}
-                    >
-                      {u.kycStatus === 'approved' ? (
-                        <ShieldCheck size={10} />
-                      ) : u.kycStatus === 'rejected' ? (
-                        <X size={10} />
-                      ) : (
-                        <Clock size={10} />
-                      )}
-                      {u.kycStatus || 'pending'}
-                    </div>
+                  {/* role */}
+                  <td className="px-6 py-4 text-xs font-bold uppercase">
+                    {u.role}
                   </td>
 
-                  {/* Wallet */}
+                  {/* actions */}
                   <td className="px-6 py-4">
-                    <span className="font-black text-sm">
-                      ${u.realBalance?.toLocaleString() || 0}
-                    </span>
-                  </td>
+                    <div className="flex justify-center gap-2">
+                      {/* view */}
+                      <button
+                        onClick={() => setSelectedUser(u)}
+                        className="p-2 border rounded-lg text-blue-500 hover:bg-blue-500 hover:text-white"
+                        title="View details"
+                      >
+                        <Eye size={14} />
+                      </button>
 
-                  {/* Created At */}
-                  <td className="px-6 py-4 font-bold text-[10px] text-gray-500 uppercase">
-                    {new Date(u.createdAt).toLocaleDateString()}
-                  </td>
+                      {/* edit */}
+                      <button
+                        onClick={() => setEditUser({ ...u })}
+                        className="p-2 border rounded-lg text-orange-500 hover:bg-orange-500 hover:text-white"
+                        title="Edit user"
+                      >
+                        <Pencil size={14} />
+                      </button>
 
-                  {/* Actions */}
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-2">
-                      {u.kycStatus === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => handleKYCAction(u, 'approve')}
-                            className="p-2 bg-green-500/10 text-green-500 border border-green-500/20 rounded-lg hover:bg-green-500 hover:text-white transition-all shadow-lg"
-                            title="Approve KYC"
-                          >
-                            <Check size={16} strokeWidth={3} />
-                          </button>
-
-                          <button
-                            onClick={() => handleKYCAction(u, 'reject')}
-                            className="p-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-lg"
-                            title="Reject KYC"
-                          >
-                            <X size={16} strokeWidth={3} />
-                          </button>
-                        </>
-                      )}
-
-                      {u.kycStatus === 'approved' && (
-                        <span className="text-[9px] font-black text-green-500 uppercase">
-                          Approved
-                        </span>
-                      )}
-
-                      {u.kycStatus === 'rejected' && (
-                        <span className="text-[9px] font-black text-red-500 uppercase">
-                          Rejected
-                        </span>
-                      )}
+                      {/* delete */}
+                      <button
+                        onClick={() => handleDelete(u._id)}
+                        className="p-2 border rounded-lg text-red-500 hover:bg-red-500 hover:text-white"
+                        title="Delete user"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
-
           </table>
         </div>
       </div>
-    </div>
+
+      {/* 👁️ VIEW DETAILS MODAL */}
+      {selectedUser && (
+        <Modal title="User Details" onClose={() => setSelectedUser(null)}>
+          <Detail label="Email" value={selectedUser.email} />
+          <Detail label="Role" value={selectedUser.role} />
+          <Detail label="Status" value={selectedUser.status || "active"} />
+          <Detail
+            label="Wallet Balance"
+            value={`$${selectedUser.realBalance?.toLocaleString() || 0}`}
+          />
+          <Detail
+            label="Created At"
+            value={new Date(selectedUser.createdAt).toLocaleString()}
+          />
+          <Detail label="User ID" value={selectedUser._id} />
+        </Modal>
+      )}
+
+      {/* ✏️ EDIT USER MODAL */}
+      {editUser && (
+        <Modal title="Update User" onClose={() => setEditUser(null)}>
+          <label className="text-xs font-bold mb-1 block">Role</label>
+          <select
+            value={editUser.role}
+            onChange={(e) =>
+              setEditUser({ ...editUser, role: e.target.value })
+            }
+            className="w-full p-2 border rounded mb-4 bg-transparent"
+          >
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+
+          <button
+            onClick={handleUpdate}
+            className="w-full bg-[#f99616] text-black font-black py-2 rounded"
+          >
+            Save Changes
+          </button>
+        </Modal>
+      )}
+    </>
   );
 };
+
+/* 🔹 Modal component */
+const Modal = ({ title, children, onClose }) => (
+  <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center">
+    <div className="bg-white dark:bg-[#0d0d0d] text-black dark:text-white rounded-xl p-6 w-full max-w-md relative">
+      <button
+        onClick={onClose}
+        className="absolute top-3 right-3 text-gray-400 hover:text-red-500"
+      >
+        <X size={18} />
+      </button>
+      <h3 className="font-black mb-4">{title}</h3>
+      {children}
+    </div>
+  </div>
+);
+
+/* 🔹 Detail row */
+const Detail = ({ label, value }) => (
+  <div className="mb-2 text-sm">
+    <span className="font-bold">{label}:</span>{" "}
+    <span className="opacity-80">{value}</span>
+  </div>
+);
 
 export default AdminUserManagement;

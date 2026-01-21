@@ -34,7 +34,7 @@ const MobileControls = () => {
   const profit = (tradeAmount * (payoutPercentage / 100)).toFixed(2);
 
   // Current balance based on account type
-  const currentBalance = accountType === 'demo' ? demoBalance : balance;
+  const currentBalance = accountType === 'demo' ? "demo" : balance;
 
   const handleTrade = async (direction) => {
     if (isPlacingTrade) return;
@@ -58,7 +58,7 @@ const MobileControls = () => {
           amount: Number(tradeAmount),
           direction: apiDirection,
           duration: tradeTime,
-          type: accountType === 'demo' ? "demoBalance" : "realBalance" // ← Important: correct type
+          type: accountType === 'demo' ? "demo" : "realBalance" // ← Important: correct type
         }),
       });
 

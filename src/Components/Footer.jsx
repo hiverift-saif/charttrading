@@ -48,6 +48,8 @@ const logoStyle = {
               Resources
             </h3>
             <ul className="space-y-3">
+                              <li><Link to="/Affiliates"  className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>Affiliates</Link></li>
+              
               <li><Link to="/supportservice" className={`hover:underline transition-colors ${darkMode ? "hover:text-white" : "hover:text-blue-600"}`}>Help Center</Link></li>
               <li><Link to="/guides" className={`hover:underline transition-colors ${darkMode ? "hover:text-white" : "hover:text-blue-600"}`}>Trading Guide</Link></li>
               <li><Link to="/maxtradingblog" className={`hover:underline transition-colors ${darkMode ? "hover:text-white" : "hover:text-blue-600"}`}>Market Insights</Link></li>

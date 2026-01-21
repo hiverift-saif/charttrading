@@ -41,7 +41,7 @@ const WithdrawContent = () => {
     setLoading(true);
 
     const token = localStorage.getItem('access_token');
-    console.log('token', token)
+    // console.log('token', token)
 
     try {
       const response = await fetch(`${API_CONFIG.baseURL}/wallet/withdraw`, {

@@ -83,7 +83,6 @@ const MobileMenu = ({ isOpen, onClose }) => {
                     Demo Account
                   </button>
                 </li>
-                <li><Link to="/Affiliates" onClick={onClose} className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>Affiliates</Link></li>
                 <li><Link to="/quickstart" onClick={onClose} className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>Quick Setup</Link></li>
                 <li><Link to="/guides" onClick={onClose} className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>Beginner Guides</Link></li>
                 <li><Link to="/tools" onClick={onClose} className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>Trading Tools</Link></li>

@@ -7,9 +7,9 @@ import {
   History,
   LogOut,
   X,
+  Ticket,
   ArrowUpRight,
-  ChevronDown
-} from 'lucide-react';
+  ChevronDown,} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useTheme } from "../context/ThemeContext";
@@ -158,6 +158,25 @@ const AdminSidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
           setIsOpen={setIsOpen}
           darkMode={darkMode}
         />
+        <SidebarLink 
+          id="influencer_promo" 
+          label="Promo Assets" 
+          icon={<Ticket size={18} />} 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          setIsOpen={setIsOpen} 
+          darkMode={darkMode} 
+        />
+        {/* SUPPORT */}
+<SidebarLink
+  id="support"
+  label="Support Desk"
+  icon={<Ticket size={18} />} // Lucide-react se Ticket icon
+  activeTab={activeTab}
+  setActiveTab={setActiveTab}
+  setIsOpen={setIsOpen}
+  darkMode={darkMode}
+/>
       </nav>
 
       {/* LOGOUT */}

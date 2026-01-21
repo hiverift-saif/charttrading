@@ -26,71 +26,78 @@ export default function AffiliateLogin() {
 
   // Handle Login Form Submit
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      // 🚀 Payload: matching your requirement
-      const payload = {
-        email: formData.email,
-        password: formData.password,
-      };
+  try {
+    const payload = {
+      email: formData.email,
+      password: formData.password,
+    };
 
-      // 🚀 URL with rememberMe query param
-      const loginUrl = `${API_CONFIG.baseURL}/auth/login?rememberMe=${rememberMe}`;
+    const loginUrl = `${API_CONFIG.baseURL}/auth/login?rememberMe=${rememberMe}`;
 
-      const res = await fetch(loginUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+    const res = await fetch(loginUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-      const result = await res.json();
-      setLoading(false);
+    const result = await res.json();
+    setLoading(false);
 
-      // 🚀 Result check based on your JSON: result.statusCode === 200
-      if (res.ok || result.statusCode === 200) {
-        // Aapke JSON mein token 'result.accessToken' ke andar hai
-        const token = result.result?.accessToken;
+    // ❌ API error
+    if (!res.ok || result.statusCode !== 200) {
+      throw new Error(result.message || "Invalid email or password");
+    }
 
-        if (!token) throw new Error("Token not found in response");
+    // ✅ Extract data safely
+    const token = result?.result?.accessToken;
+    const role  = result?.result?.user?.role;
 
-        // Storing Token
-        localStorage.setItem("affiliate_token", token);
-        
-        // Success Alert
-        Swal.fire({
-          icon: "success",
-          title: "Login Successful!",
-          text: "Redirecting to your partner dashboard...",
-          timer: 2000,
-          showConfirmButton: false,
-          background: darkMode ? "#0d0d0d" : "#fff",
-          color: darkMode ? "#fff" : "#000",
-        }).then(() => navigate("/AffiliateDashboard"));
+    if (!token) throw new Error("Token not found");
 
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Access Denied",
-          text: result.message || "Invalid email or password.",
-          background: darkMode ? "#0d0d0d" : "#fff",
-          color: darkMode ? "#fff" : "#000",
-          confirmButtonColor: "#f99616"
-        });
-      }
-    } catch (error) {
-      setLoading(false);
-      Swal.fire({
+    // ❌ ROLE CHECK
+    if (role !== "affiliate") {
+      await Swal.fire({
         icon: "error",
-        title: "Connection Failed",
-        text: "Server is not responding. Please try again.",
+        title: "Access Denied",
+        text: "You are not authorized as an affiliate.",
+        confirmButtonColor: "#ef4444",
         background: darkMode ? "#0d0d0d" : "#fff",
         color: darkMode ? "#fff" : "#000",
-        confirmButtonColor: "#f99616"
       });
+      return; // ⛔ STOP LOGIN
     }
-  };
+
+    // ✅ Affiliate only
+    localStorage.setItem("affiliate_token", token);
+
+    await Swal.fire({
+      icon: "success",
+      title: "Verified",
+      text: "Welcome back, Affiliate!",
+      timer: 1500,
+      showConfirmButton: false,
+      background: darkMode ? "#0d0d0d" : "#fff",
+      color: darkMode ? "#fff" : "#000",
+    });
+
+    navigate("/AffiliateDashboard");
+
+  } catch (error) {
+    setLoading(false);
+    Swal.fire({
+      icon: "error",
+      title: "Login Failed",
+      text: error.message || "Server is not responding.",
+      background: darkMode ? "#0d0d0d" : "#fff",
+      color: darkMode ? "#fff" : "#000",
+      confirmButtonColor: "#f99616",
+    });
+  }
+};
+
 
   return (
     <div className={`min-h-screen flex items-center justify-center p-4 relative overflow-hidden font-sans transition-colors duration-500

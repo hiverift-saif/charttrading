@@ -10,6 +10,8 @@ import AdminWithdrawals from './AdminWithdrawals';
 import { Menu, AlertTriangle, Activity, Database, Sun, Moon } from 'lucide-react';
 import API_CONFIG from '../config';
 import { useTheme } from "../context/ThemeContext";
+import InfluencerPromo from './InfluencerPromo'; // 🚀 Import naya component
+import AdminSupport from './AdminSupport';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(() => {
@@ -22,36 +24,36 @@ const AdminDashboard = () => {
   const [isApiDown, setIsApiDown] = useState(false);
   const [dbStatus, setDbStatus] = useState('up'); 
 
+  // 🚀 Navbar Reference Logic: invert(1) for Light Mode
+  const logoStyle = {
+    filter: darkMode ? "none" : "invert(1)",
+    transition: "filter 0.3s ease"
+  };
+
   useEffect(() => {
     localStorage.setItem("admin_active_tab", activeTab);
   }, [activeTab]);
 
-useEffect(() => {
+  useEffect(() => {
     const runSystemCheck = async () => {
       const token = localStorage.getItem("admin_token");
       if (!token) return;
 
       try {
-        // 1. API & Downtime check (Isse humein pata chalega backend zinda hai ya nahi)
         const downtimeRes = await axios.get(`${API_CONFIG.baseURL}/admin/alerts/api-downtime`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        // Agar ye request yahan tak pahunchi hai, matlab API UP hai 🚀
         setIsApiDown(downtimeRes.data?.result?.downtime === true);
         
-        // 2. Health Check (Flexible Logic)
         try {
           const healthRes = await axios.get(`${API_CONFIG.baseURL}/health`);
-          // Agar 200 OK hai ya response mein 'up' likha hai
           if (healthRes.status === 200) {
             setDbStatus('up');
           } else {
             setDbStatus('down');
           }
         } catch (healthErr) {
-          // Agar /health endpoint nahi hai lekin downtimeRes (step 1) sahi chala 
-          // toh iska matlab DB connect hai, bas health route missing hai.
           if (downtimeRes.status === 200) {
             setDbStatus('up'); 
           } else {
@@ -60,14 +62,13 @@ useEffect(() => {
         }
 
       } catch (err) {
-        // Agar main API call hi fail ho gayi (Network Error / 500)
         setDbStatus('down');
         setIsApiDown(true);
       }
     };
 
     runSystemCheck();
-    const interval = setInterval(runSystemCheck, 60000); // Check every 1 minute
+    const interval = setInterval(runSystemCheck, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -75,6 +76,8 @@ useEffect(() => {
     switch (activeTab) {
       case 'overview': return <AdminOverview />;
       case 'users': return <AdminUserManagement />;
+      case 'support': return <AdminSupport />; // 🚀 Naya support case
+      case 'influencer_promo': return <InfluencerPromo />; // 🚀 Link to new component
       case 'finance_pending': return <AdminFinance />;
       case 'finance_history': return <AdminFinanceHistory />;
       case 'withdrawals': return <AdminWithdrawals />;
@@ -99,13 +102,12 @@ useEffect(() => {
         </div>
       )}
 
-      {/* 🚀 2. SIDEBAR - Full Height (inset-y-0) */}
+      {/* 🚀 2. SIDEBAR */}
       <div 
         className={`fixed inset-y-0 left-0 z-[800] w-72 transition-all duration-300 transform
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 
         ${darkMode ? 'bg-black' : 'bg-white'}`} 
       >
-        {/* Sidebar ke content ko alert height ke hisaab se niche push karenge, sidebar ko nahi */}
         <div className="h-full flex flex-col" style={{ paddingTop: ALERT_HEIGHT }}>
           <AdminSidebar
             activeTab={activeTab}
@@ -119,17 +121,23 @@ useEffect(() => {
       {/* 🚀 3. MAIN WRAPPER */}
       <div className="flex-1 flex flex-col min-w-0 h-full lg:ml-72 relative">
         
-        {/* HEADER (Fixed top par) */}
+        {/* HEADER */}
         <header 
           className={`fixed top-0 left-0 lg:left-72 right-0 h-16 flex items-center justify-between px-6 border-b z-[500] transition-all duration-300 
-          ${darkMode ? 'bg-black/80 border-gray-800' : 'bg-white/80 border-slate-200'} backdrop-blur-md`}
+          ${darkMode ? 'bg-black/80 border-gray-800' : 'bg-white/80 border-slate-200 shadow-sm'} backdrop-blur-md`}
           style={{ top: ALERT_HEIGHT }}
         >
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden text-[#f99616] p-1">
               <Menu size={26} />
             </button>
-            <img src="/src/assets/logo.png" alt="Logo" className="w-28 md:w-32 h-auto object-contain" />
+            {/* 🚀 Fixed Logo with Navbar Logic */}
+            <img 
+              src="/src/assets/logo.png" 
+              alt="Logo" 
+              className="w-28 md:w-32 h-auto object-contain" 
+              style={logoStyle}
+            />
           </div>
 
           <button 
@@ -159,7 +167,6 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* Component Rendering */}
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               {renderComponent()}
             </div>

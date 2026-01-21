@@ -1,116 +1,115 @@
-import React, { useState } from 'react';
-import { useTheme } from "../context/ThemeContext"; // 🚀 Added Logic
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTheme } from "../context/ThemeContext";
+import { Loader2, MousePointer2, UserPlus, Wallet, Percent, BarChart3, Target } from "lucide-react";
+import axios from "axios";
+import API_CONFIG from '../config';
 
 function AffiliateStatistics() {
-  const { darkMode } = useTheme(); // 🚀 Hook for theme check
+  const { darkMode } = useTheme();
   const [activeTab, setActiveTab] = useState('day');
+  const [loading, setLoading] = useState(true);
+  const [statsData, setStatsData] = useState([]);
+
+  // 🚀 Fetch Statistics from API
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      const token = localStorage.getItem("affiliate_token");
+      try {
+        setLoading(true);
+        const response = await axios.get(`${API_CONFIG.baseURL}/referral/statistics`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.data.statusCode === 200) {
+          setStatsData(response.data.result || []);
+        }
+      } catch (error) {
+        console.error("Fetch Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStatistics();
+  }, []);
+
+  // 🚀 Logic: Aggregate Totals for Top Cards
+  const totals = useMemo(() => {
+    return statsData.reduce((acc, curr) => ({
+      clicks: acc.clicks + (curr.clicks || 0),
+      registrations: acc.registrations + (curr.registrations || 0),
+      deposits: acc.deposits + (curr.deposits || 0),
+      commission: acc.commission + (curr.commission || 0)
+    }), { clicks: 0, registrations: 0, deposits: 0, commission: 0 });
+  }, [statsData]);
+
+  if (loading) return (
+    <div className="h-96 flex flex-col items-center justify-center gap-4">
+      <Loader2 className="w-10 h-10 text-[#f99616] animate-spin" />
+      <p className="text-[10px] font-black uppercase tracking-[3px] text-gray-500">Syncing Statistics...</p>
+    </div>
+  );
 
   return (
-    <div className={`space-y-6 transition-colors duration-500 ${darkMode ? "text-white" : "text-slate-900"}`}>
+    <div className={`space-y-8 animate-in fade-in duration-700 transition-colors ${darkMode ? "text-white" : "text-slate-900"}`}>
+      
+      {/* 🚀 1. TOP METRICS CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MiniCard label="Total Clicks" value={totals.clicks} icon={MousePointer2} color="text-blue-500" dark={darkMode} />
+        <MiniCard label="Total Registrations" value={totals.registrations} icon={UserPlus} color="text-purple-500" dark={darkMode} />
+        <MiniCard label="Active Deposits" value={totals.deposits} icon={Wallet} color="text-green-500" dark={darkMode} />
+        <MiniCard label="Total Commission" value={`$${totals.commission.toFixed(2)}`} icon={Percent} color="text-[#f99616]" dark={darkMode} />
+      </div>
+
       <div className="flex flex-col gap-2">
-        
-        {/* Tabs Switcher */}
-        <div className={`flex flex-wrap gap-2 border rounded-xl p-1 transition-colors 
-          ${darkMode ? "bg-black border-gray-700" : "bg-gray-100 border-gray-200"}`}>
-          {['day', 'links', 'trader', 'performance'].map((tab) => (
+        {/* 🚀 2. TABS SWITCHER */}
+        <div className={`flex flex-wrap gap-2 border rounded-xl p-1 transition-colors ${darkMode ? "bg-black border-gray-700" : "bg-gray-100 border-gray-200"}`}>
+          {['day', 'performance'].map((tab) => (
             <button
               key={tab}
-              className={`flex-1 min-w-[80px] px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-lg transition-all ${
+              className={`flex-1 px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
                 activeTab === tab
-                  ? (darkMode ? 'bg-gray-800 text-white shadow-lg' : 'bg-white text-slate-900 shadow-sm')
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? "bg-[#f99616] text-black shadow-lg"
+                  : "text-gray-500 hover:text-gray-400"
               }`}
               onClick={() => setActiveTab(tab)}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab}
             </button>
           ))}
         </div>
 
-        {/* Tab Content Helper Component */}
-        <div className={`rounded-xl border shadow-2xl transition-all duration-500 p-6
-          ${darkMode ? "bg-black border-gray-800" : "bg-white border-gray-100"}`}>
-          
-          <h4 className={`text-lg font-black uppercase italic mb-6 ${darkMode ? "text-white" : "text-slate-800"}`}>
-            {activeTab === 'day' && "Statistics by Day"}
-            {activeTab === 'links' && "Links Statistics"}
-            {activeTab === 'trader' && "Trader Statistics"}
-            {activeTab === 'performance' && "Performance Overview"}
-          </h4>
+        {/* 🚀 3. TABLE CONTAINER */}
+        <div className={`rounded-xl border shadow-2xl overflow-hidden ${darkMode ? "bg-[#0a0a0a] border-gray-800" : "bg-white border-gray-100"}`}>
+          <div className="p-6 border-b border-gray-800/50 flex justify-between items-center">
+             <h4 className="text-sm font-black uppercase italic tracking-widest flex items-center gap-2">
+               <BarChart3 size={18} className="text-[#f99616]" /> {activeTab === 'day' ? "Daily Breakdown" : "Performance Index"}
+             </h4>
+          </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className={`border-b transition-colors ${darkMode ? "border-gray-800" : "border-gray-100"}`}>
-                <tr>
-                  {/* Headers Logic */}
-                  {activeTab === 'day' && ['Date', 'Clicks', 'Registrations', 'Deposits', 'Deposits Sum', 'Commission', 'Withdrawals', 'Traders', 'Turnover All'].map(h => <th key={h} className="p-3 text-left text-gray-500 font-bold uppercase text-[10px] tracking-widest">{h}</th>)}
-                  {activeTab === 'links' && ['Link', 'Clicks', 'Registrations', 'Deposits', 'Commission'].map(h => <th key={h} className="p-3 text-left text-gray-500 font-bold uppercase text-[10px] tracking-widest">{h}</th>)}
-                  {activeTab === 'trader' && ['Trader ID', 'Name', 'Deposits', 'Trades', 'Profit', 'Commission'].map(h => <th key={h} className="p-3 text-left text-gray-500 font-bold uppercase text-[10px] tracking-widest">{h}</th>)}
-                  {activeTab === 'performance' && ['Metric', 'Value'].map(h => <th key={h} className="p-3 text-left text-gray-500 font-bold uppercase text-[10px] tracking-widest">{h}</th>)}
+              <thead className={`border-b ${darkMode ? "border-gray-800" : "border-gray-100"}`}>
+                <tr className="text-[10px] font-black uppercase text-gray-500 tracking-tighter">
+                  <th className="p-4 text-left">Date</th>
+                  <th className="p-4 text-left">Clicks</th>
+                  <th className="p-4 text-left">Regs</th>
+                  <th className="p-4 text-left">Deposits</th>
+                  <th className="p-4 text-left">Dep. Sum</th>
+                  <th className="p-4 text-left">Comm.</th>
+                  <th className="p-4 text-left">Turnover</th>
                 </tr>
               </thead>
               <tbody className={`divide-y ${darkMode ? "divide-gray-800" : "divide-gray-50"}`}>
-                
-                {/* Day Tab Content */}
-                {activeTab === 'day' && [
-                  { d: '2025-10-13', c: 12, r: 3, dep: 2, sum: '$150.00', com: '$12.50', w: '$0.00', t: 1, to: '$540.00' },
-                  { d: '2025-10-12', c: 20, r: 4, dep: 1, sum: '$50.00', com: '$4.00', w: '$15.00', t: 2, to: '$300.00' }
-                ].map((row, i) => (
-                  <tr key={i} className={`transition-colors ${darkMode ? "hover:bg-white/5" : "hover:bg-gray-50"}`}>
-                    <td className="p-3 font-medium">{row.d}</td>
-                    <td className="p-3">{row.c}</td>
-                    <td className="p-3">{row.r}</td>
-                    <td className="p-3">{row.dep}</td>
-                    <td className="p-3 font-bold text-green-500">{row.sum}</td>
-                    <td className="p-3 text-[#f99616] font-bold">{row.com}</td>
-                    <td className="p-3 text-red-500">{row.w}</td>
-                    <td className="p-3">{row.t}</td>
-                    <td className="p-3">{row.to}</td>
+                {statsData.map((row, i) => (
+                  <tr key={i} className={`transition-colors ${darkMode ? "hover:bg-white/[0.02]" : "hover:bg-gray-50"}`}>
+                    <td className="p-4 font-bold text-blue-500">{row.date}</td>
+                    <td className="p-4 font-black">{row.clicks}</td>
+                    <td className="p-4 font-black">{row.registrations}</td>
+                    <td className="p-4 font-black">{row.deposits}</td>
+                    <td className="p-4 font-black text-green-500">${row.depositSum}</td>
+                    <td className="p-4 text-[#f99616] font-black italic">${row.commission}</td>
+                    <td className="p-4 font-black">${row.turnover}</td>
                   </tr>
                 ))}
-
-                {/* Links Tab Content */}
-                {activeTab === 'links' && [
-                  { l: 'https://abc.com/ref123', c: 30, r: 5, d: 2, com: '$20' },
-                  { l: 'https://abc.com/ref456', c: 18, r: 3, d: 1, com: '$9' }
-                ].map((row, i) => (
-                  <tr key={i} className={`transition-colors ${darkMode ? "hover:bg-white/5" : "hover:bg-gray-50"}`}>
-                    <td className="p-3 text-blue-500 font-medium underline cursor-pointer">{row.l}</td>
-                    <td className="p-3">{row.c}</td>
-                    <td className="p-3">{row.r}</td>
-                    <td className="p-3">{row.d}</td>
-                    <td className="p-3 text-[#f99616] font-bold">{row.com}</td>
-                  </tr>
-                ))}
-
-                {/* Trader Tab Content */}
-                {activeTab === 'trader' && [
-                  { id: 'TRD2452', n: 'Rahul Verma', d: '$120', t: 42, p: '$35', com: '$3.50' },
-                  { id: 'TRD9821', n: 'Amit Kumar', d: '$80', t: 28, p: '$12', com: '$1.20' }
-                ].map((row, i) => (
-                  <tr key={i} className={`transition-colors ${darkMode ? "hover:bg-white/5" : "hover:bg-gray-50"}`}>
-                    <td className="p-3 font-mono font-bold">{row.id}</td>
-                    <td className="p-3">{row.n}</td>
-                    <td className="p-3 font-bold">{row.d}</td>
-                    <td className="p-3">{row.t}</td>
-                    <td className="p-3 text-green-500">+{row.p}</td>
-                    <td className="p-3 text-[#f99616] font-bold">{row.com}</td>
-                  </tr>
-                ))}
-
-                {/* Performance Tab Content */}
-                {activeTab === 'performance' && [
-                  { m: 'Total Clicks', v: '320' },
-                  { m: 'Total Registrations', v: '55' },
-                  { m: 'Total Deposits', v: '$780' },
-                  { m: 'Total Commission', v: '$74.40' }
-                ].map((row, i) => (
-                  <tr key={i} className={`transition-colors ${darkMode ? "hover:bg-white/5" : "hover:bg-gray-50"}`}>
-                    <td className="p-3 font-medium uppercase text-[11px] tracking-widest text-gray-500">{row.m}</td>
-                    <td className={`p-3 font-black text-lg ${row.m.includes('Commission') ? 'text-[#f99616]' : (darkMode ? 'text-white' : 'text-slate-900')}`}>{row.v}</td>
-                  </tr>
-                ))}
-
               </tbody>
             </table>
           </div>
@@ -119,5 +118,21 @@ function AffiliateStatistics() {
     </div>
   );
 }
+
+// 🚀 MINI CARD COMPONENT
+const MiniCard = ({ label, value, icon: Icon, color, dark }) => (
+  <div className={`p-5 rounded-2xl border transition-all hover:translate-y-[-2px] ${dark ? "bg-[#0d0d0d] border-gray-800" : "bg-white border-gray-200 shadow-sm"}`}>
+    <div className="flex justify-between items-start mb-4">
+      <div className={`p-2.5 rounded-xl ${dark ? 'bg-white/5' : 'bg-gray-50'}`}>
+        <Icon size={20} className={color} />
+      </div>
+      <span className="bg-green-500/10 text-green-500 text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">
+        Optimal
+      </span>
+    </div>
+    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">{label}</p>
+    <h3 className={`text-2xl font-black italic tracking-tighter ${dark ? "text-white" : "text-slate-900"}`}>{value}</h3>
+  </div>
+);
 
 export default AffiliateStatistics;

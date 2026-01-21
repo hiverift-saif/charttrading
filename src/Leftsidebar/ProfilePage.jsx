@@ -1,113 +1,154 @@
-import React, { useState } from 'react';
-import { User, Mail, Globe, ArrowLeft, Lock, Save, Camera, CheckCircle2 } from 'lucide-react';
-import { useTheme } from "../context/ThemeContext"; // 🚀 Added Context
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Mail, Globe, ArrowLeft, Save, Camera, Loader2, Trash2 } from 'lucide-react';
+import { useTheme } from "../context/ThemeContext";
+import API_CONFIG from '../config';
+import Swal from 'sweetalert2';
 
 const ProfilePage = ({ setActiveTab }) => {
-  const { darkMode } = useTheme(); // 🚀 Theme state access
+  const { darkMode } = useTheme();
+  const fileInputRef = useRef(null);
+  const [loading, setLoading] = useState(false);
+  
+  // 🚀 Initial Profile State
+  const [profile, setProfile] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    country: 'India',
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" // Default static image
+  });
+
+  useEffect(() => {
+    const savedName = localStorage.getItem('user_name') || "Trader Ali";
+    const savedEmail = localStorage.getItem('user_email') || "user@example.com";
+    const savedAvatar = localStorage.getItem('user_avatar');
+    
+    const nameParts = savedName.split(" ");
+    setProfile(prev => ({
+      ...prev,
+      firstName: nameParts[0] || "",
+      lastName: nameParts.slice(1).join(" ") || "",
+      email: savedEmail,
+      avatar: savedAvatar || prev.avatar
+    }));
+  }, []);
+
+  // 🚀 Image Upload Logic
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfile(prev => ({ ...prev, avatar: reader.result }));
+        localStorage.setItem('user_avatar', reader.result); // Temporary local save
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/auth/profile`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          // Agar backend image accept kar raha hai toh avatar bhi bhej sakte hain
+        })
+      });
+
+      if (response.ok) {
+        localStorage.setItem('user_name', `${profile.firstName} ${profile.lastName}`);
+        Swal.fire({
+          icon: 'success',
+          title: 'Protocol Updated',
+          text: 'Profile and identity saved successfully',
+          confirmButtonColor: '#f99616',
+          background: darkMode ? '#0d0d0d' : '#fff',
+        });
+      }
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Update failed' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className={`min-h-full w-full p-4 md:p-10 overflow-y-auto custom-scrollbar transition-colors duration-500
+    <div className={`min-h-full w-full p-4 md:p-10 overflow-y-auto transition-colors duration-500
       ${darkMode ? "bg-black text-white" : "bg-white text-slate-900"}`}>
       
       <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
         
         {/* --- HEADER --- */}
-        <div className={`flex items-center gap-4 mb-8 pb-6 border-b transition-colors
-          ${darkMode ? "border-gray-800/50" : "border-gray-100"}`}>
-          <button 
-            onClick={() => setActiveTab('chart')} 
-            className={`p-2 md:p-3 border rounded-xl transition-all active:scale-95 group shadow-lg
-              ${darkMode ? "bg-[#111] border-gray-800 hover:border-[#f99616] shadow-[#f99616]/5" : "bg-gray-50 border-gray-200 hover:border-[#f99616] shadow-black/5"}`}
-          >
-            <ArrowLeft size={20} className="text-gray-400 group-hover:text-[#f99616] group-hover:-translate-x-1 transition-all" />
+        <div className={`flex items-center gap-4 mb-8 pb-6 border-b ${darkMode ? "border-gray-800/50" : "border-gray-100"}`}>
+          <button onClick={() => setActiveTab('chart')} className="p-2 border rounded-xl hover:border-[#f99616] transition-all">
+            <ArrowLeft size={20} className="text-gray-400" />
           </button>
           <div>
-            <h2 className={`text-xl md:text-2xl font-black uppercase tracking-tighter italic transition-colors
-              ${darkMode ? "text-white" : "text-black"}`}>
-              Edit <span className="text-[#f99616]">Profile</span>
-            </h2>
-            <p className={`${darkMode ? "text-gray-500" : "text-gray-400"} text-[9px] md:text-[10px] font-bold uppercase tracking-[3px]`}>Manage your Binovera identity</p>
+            <h2 className="text-xl md:text-2xl font-black uppercase italic">Edit <span className="text-[#f99616]">Profile</span></h2>
+            <p className="text-gray-500 text-[9px] font-bold uppercase tracking-[3px]">Manage Identity</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* --- LEFT SIDE: AVATAR --- */}
+          {/* --- LEFT SIDE: IMAGE UPLOAD --- */}
           <div className="lg:col-span-4">
-            <div className={`rounded-3xl border p-8 text-center relative overflow-hidden shadow-2xl transition-colors
-              ${darkMode ? "bg-[#0a0a0a] border-gray-800" : "bg-white border-gray-200"}`}>
-              <div className="absolute top-0 left-0 w-full h-1 bg-[#f99616]"></div>
-              
-              <div className="relative w-24 h-24 md:w-32 md:h-32 mx-auto mb-6">
-                <div className={`w-full h-full rounded-full flex items-center justify-center border-4 overflow-hidden transition-colors
-                  ${darkMode ? "bg-gray-900 border-gray-800" : "bg-gray-100 border-white shadow-inner"}`}>
-                  <User size={64} className={darkMode ? "text-gray-700" : "text-gray-300"} />
+            <div className={`rounded-[2.5rem] border p-8 text-center relative overflow-hidden shadow-2xl ${darkMode ? "bg-[#0a0a0a] border-gray-800" : "bg-white border-gray-200"}`}>
+              <div className="relative w-32 h-32 mx-auto mb-6">
+                <div className={`w-full h-full rounded-full flex items-center justify-center border-4 overflow-hidden ${darkMode ? "bg-gray-900 border-gray-800" : "bg-gray-100 border-white"}`}>
+                  <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
                 </div>
-                <button className="absolute bottom-1 right-1 p-2 bg-[#f99616] rounded-full border-4 border-white md:border-black hover:bg-[#e88914] transition-all shadow-lg">
+                
+                {/* Hidden Input */}
+                <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
+                
+                <button 
+                  onClick={() => fileInputRef.current.click()}
+                  className="absolute bottom-1 right-1 p-2 bg-[#f99616] rounded-full border-4 border-black hover:scale-110 transition-all shadow-lg"
+                >
                   <Camera size={16} className="text-white" />
                 </button>
               </div>
 
-              <h3 className={`text-lg font-black uppercase tracking-tight transition-colors ${darkMode ? "text-white" : "text-slate-800"}`}>Client #1189209</h3>
-              <div className="mt-2 inline-block px-3 py-1 bg-[#f99616]/10 border border-[#f99616]/20 rounded-full">
-                <span className="text-[#f99616] text-[9px] font-black uppercase tracking-widest italic">Unverified</span>
-              </div>
+              <h3 className="text-lg font-black uppercase">{profile.firstName} {profile.lastName}</h3>
+              <p className="text-[10px] text-gray-500 font-bold mb-4">{profile.email}</p>
+              
+              <button 
+                onClick={() => setProfile({...profile, avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"})}
+                className="text-[9px] font-black uppercase text-red-500 hover:underline flex items-center justify-center gap-1 mx-auto"
+              >
+                <Trash2 size={12} /> Reset to Default
+              </button>
             </div>
           </div>
 
-          {/* --- RIGHT SIDE: FORMS --- */}
-          <div className="lg:col-span-8 space-y-8">
-            
-            {/* Form 1: Personal Details */}
-            <div className={`rounded-3xl border p-6 md:p-8 shadow-2xl transition-colors
-              ${darkMode ? "bg-[#0a0a0a] border-gray-800" : "bg-white border-gray-200"}`}>
-              <h4 className={`text-sm font-black uppercase tracking-[2px] mb-8 flex items-center gap-3 transition-colors
-                ${darkMode ? "text-white" : "text-slate-700"}`}>
-                <User size={18} className="text-[#f99616]" /> Personal Details
-              </h4>
-              
-              <form className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8" onSubmit={(e) => e.preventDefault()}>
-                <InputField label="First Name" placeholder="Enter first name" defaultValue="Saif" icon={<User size={16}/>} darkMode={darkMode} />
-                <InputField label="Last Name" placeholder="Enter last name" defaultValue="Ali" icon={<User size={16}/>} darkMode={darkMode} />
-                <InputField label="Email Address" placeholder="name@example.com" defaultValue="user500@gmail.com" icon={<Mail size={16}/>} darkMode={darkMode} />
-                <InputField label="Country" value="India" disabled icon={<Globe size={16}/>} darkMode={darkMode} />
+          {/* --- RIGHT SIDE: FORM --- */}
+          <div className="lg:col-span-8">
+            <div className={`rounded-[2.5rem] border p-6 md:p-10 shadow-2xl ${darkMode ? "bg-[#0a0a0a] border-gray-800" : "bg-white border-gray-200"}`}>
+              <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleUpdateProfile}>
+                <InputField label="First Name" name="firstName" value={profile.firstName} onChange={(e) => setProfile({...profile, firstName: e.target.value})} icon={<User size={16}/>} darkMode={darkMode} />
+                <InputField label="Last Name" name="lastName" value={profile.lastName} onChange={(e) => setProfile({...profile, lastName: e.target.value})} icon={<User size={16}/>} darkMode={darkMode} />
+                <InputField label="Email (Locked)" value={profile.email} disabled icon={<Mail size={16}/>} darkMode={darkMode} />
+                <InputField label="Country" value={profile.country} disabled icon={<Globe size={16}/>} darkMode={darkMode} />
                 
-                <div className={`md:col-span-2 pt-4 border-t mt-2 ${darkMode ? "border-gray-800/50" : "border-gray-100"}`}>
-                  <button className="w-full md:w-auto bg-[#f99616] hover:bg-[#e88914] text-white font-black text-[10px] md:text-xs uppercase tracking-[2px] py-4 px-10 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-orange-500/20">
-                    <Save size={16} /> Update Information
+                <div className="md:col-span-2 pt-6">
+                  <button type="submit" disabled={loading} className="w-full md:w-auto bg-[#f99616] hover:bg-[#e88914] text-black font-black text-xs uppercase tracking-[2px] py-4 px-12 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl shadow-orange-500/20">
+                    {loading ? <Loader2 className="animate-spin" size={18} /> : <><Save size={18} /> Save Identity</>}
                   </button>
                 </div>
               </form>
             </div>
-
-            {/* Form 2: Security Settings */}
-            <div className={`rounded-3xl border p-6 md:p-8 shadow-2xl transition-colors
-              ${darkMode ? "bg-[#0a0a0a] border-gray-800" : "bg-white border-gray-200"}`}>
-              <h4 className={`text-sm font-black uppercase tracking-[2px] mb-8 flex items-center gap-3 transition-colors
-                ${darkMode ? "text-white" : "text-slate-700"}`}>
-                <Lock size={18} className="text-[#f99616]" /> Security Settings
-              </h4>
-              
-              <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-                <InputField label="Current Password" type="password" placeholder="••••••••" icon={<Lock size={16}/>} darkMode={darkMode} />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8">
-                  <InputField label="New Password" type="password" placeholder="••••••••" icon={<Lock size={16}/>} darkMode={darkMode} />
-                  <InputField label="Confirm Password" type="password" placeholder="••••••••" icon={<CheckCircle2 size={16}/>} darkMode={darkMode} />
-                </div>
-                
-                <div className={`pt-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-t ${darkMode ? "border-gray-800/50" : "border-gray-100"}`}>
-                  <button className={`w-full md:w-auto border font-black text-[10px] md:text-xs uppercase tracking-[2px] py-4 px-10 rounded-2xl transition-all active:scale-95
-                    ${darkMode ? "bg-[#f99616]/10 border-gray-800 hover:border-[#f99616]/50 text-white" : "bg-gray-50 border-gray-200 hover:border-[#f99616] text-slate-700"}`}>
-                    Save New Password
-                  </button>
-                  <p className="text-gray-400 text-[9px] font-bold uppercase tracking-tight text-center md:text-right max-w-[220px]">
-                    Make sure both passwords are <span className="text-[#f99616]">identical</span>.
-                  </p>
-                </div>
-              </form>
-            </div>
-
           </div>
         </div>
       </div>
@@ -115,27 +156,12 @@ const ProfilePage = ({ setActiveTab }) => {
   );
 };
 
-// --- Custom Responsive Input Component ---
-const InputField = ({ label, placeholder, value, defaultValue, icon, disabled = false, type = "text", darkMode }) => (
-  <div className="flex flex-col gap-2 w-full">
-    <label className={`${darkMode ? "text-gray-500" : "text-gray-400"} text-[9px] md:text-[10px] font-black uppercase tracking-widest ml-1`}>{label}</label>
+const InputField = ({ label, value, onChange, icon, disabled = false, darkMode }) => (
+  <div className="flex flex-col gap-2">
+    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">{label}</label>
     <div className="relative group">
-      <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors
-        ${darkMode ? "text-gray-600 group-focus-within:text-[#f99616]" : "text-gray-400 group-focus-within:text-[#f99616]"}`}>
-        {icon}
-      </div>
-      <input 
-        type={type}
-        value={value}
-        defaultValue={defaultValue}
-        placeholder={placeholder}
-        disabled={disabled}
-        className={`w-full border rounded-xl md:rounded-2xl py-3.5 md:py-4 pl-12 pr-4 text-xs md:text-sm font-bold transition-all outline-none focus:ring-4 focus:ring-[#f99616]/5
-          ${darkMode 
-            ? "bg-black border-gray-800 text-white placeholder:text-gray-700 focus:border-[#f99616]/50" 
-            : "bg-gray-50 border-gray-200 text-black placeholder:text-gray-300 focus:border-[#f99616]/50"}
-          ${disabled ? 'opacity-40 cursor-not-allowed border-dashed' : 'hover:border-gray-700'}`}
-      />
+      <div className={`absolute left-4 top-1/2 -translate-y-1/2 ${darkMode ? "text-gray-600" : "text-gray-400"} group-focus-within:text-[#f99616]`}>{icon}</div>
+      <input value={value} onChange={onChange} disabled={disabled} className={`w-full border rounded-2xl py-4 pl-12 pr-4 text-sm font-bold transition-all outline-none ${darkMode ? "bg-black border-gray-800 text-white focus:border-[#f99616]" : "bg-gray-50 border-gray-200 text-black focus:border-[#f99616]"} ${disabled ? 'opacity-50 cursor-not-allowed border-dashed' : ''}`} />
     </div>
   </div>
 );

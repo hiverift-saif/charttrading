@@ -27,25 +27,31 @@ const TradePanel = () => {
 
   const tradeLock = useRef(false);
   const token = localStorage.getItem('access_token');
-console.log("jdsbdabk", token)
+
   const profit = (amount * (payoutPercentage / 100)).toFixed(2);
   const totalReturn = (Number(amount) + Number(profit)).toFixed(2);
-  const currentBalance = accountType === 'demo' ? demoBalance : balance;
+
+  // 🚀 FIXED: Helper to get the correct numeric balance
+  const getSafeBalance = () => {
+    return accountType === 'demo' ? Number(demoBalance) : Number(balance);
+  };
 
   const placeTrade = async (direction) => {
-    if (tradeLock.current) return;
-    console.log("placetrade", token)
-    // 🚀 STEP 1: Syncing Lock ON
+    // Prevent double clicks and invalid trades
+    if (tradeLock.current || isPlacingTrade) return;
+    
+    const currentBal = getSafeBalance();
+    if (currentBal < amount) {
+      setTradeError('Insufficient Balance!');
+      return;
+    }
+
+    // 🚀 STEP 1: Syncing Lock ON (Stop background balance updates)
     dispatch(setSyncing(true)); 
 
     const apiDirection = direction === 'buy' ? 'up' : 'down';
     if (!token) {
       setTradeError('Session expired. Please login again.');
-      dispatch(setSyncing(false));
-      return;
-    }
-    if (currentBalance < amount) {
-      setTradeError('Insufficient Balance!');
       dispatch(setSyncing(false));
       return;
     }
@@ -59,7 +65,7 @@ console.log("jdsbdabk", token)
       asset: currentAsset?.displayName?.split('/')[0] || 'BTC',
       amount: Number(amount),
       direction: apiDirection,
-      type: accountType === 'demo' ? "demoBalance" : "realBalance"
+      type: accountType === 'demo' ? "demo" : "realBalance"
     };
 
     try {
@@ -75,7 +81,7 @@ console.log("jdsbdabk", token)
       const result = await response.json();
 
       if (response.ok) {
-        // Redux local updates
+        // 🚀 STEP 2: Update Local Redux immediately (Subtract from wallet)
         dispatch(addOpenTrade({
           id: result.tradeId || Date.now(),
           symbol: tradeData.asset,
@@ -86,7 +92,7 @@ console.log("jdsbdabk", token)
           expiryTime: new Date(Date.now() + 60000).toISOString(),
         }));
 
-        const newBalance = currentBalance - amount;
+        const newBalance = currentBal - amount;
         if (accountType === 'demo') {
           dispatch(updateDemoBalance(newBalance));
         } else {
@@ -95,20 +101,23 @@ console.log("jdsbdabk", token)
 
         setShowKeypad(false);
 
-        // 🚀 STEP 2: Wait for 5 sec then Syncing OFF
+        // 🚀 STEP 3: Keep wallet locked for 7 seconds. 
+        // This gives backend enough time to update so next sync is accurate.
         setTimeout(() => {
           dispatch(setSyncing(false));
-        }, 5000);
+          tradeLock.current = false;
+        }, 7000);
 
       } else {
         setTradeError(result.message || 'Trade failed.');
         dispatch(setSyncing(false));
+        tradeLock.current = false;
       }
     } catch (err) {
       setTradeError('Network error. Please try again.');
       dispatch(setSyncing(false));
-    } finally {
       tradeLock.current = false;
+    } finally {
       setIsPlacingTrade(false);
       setPlacingDirection('');
     }
@@ -129,7 +138,7 @@ console.log("jdsbdabk", token)
       setAmount((prev) => Number(prev === 10 ? val : prev.toString() + val));
     }
   };
-console.log("testingwallet", isPlacingTrade  ,token , currentBalance , amount)
+
   return (
     <div className={`flex-1 flex flex-col p-3 gap-3 overflow-y-auto no-scrollbar relative h-full transition-colors duration-500
       ${darkMode ? "bg-black" : "bg-white"}`}>
@@ -203,19 +212,19 @@ console.log("testingwallet", isPlacingTrade  ,token , currentBalance , amount)
       )}
 
       <div className="flex flex-col gap-3 mt-2">
-        <button onClick={() => placeTrade('buy')} disabled={isPlacingTrade || !token || currentBalance < amount}
+        <button onClick={() => placeTrade('buy')} disabled={isPlacingTrade || !token || getSafeBalance() < amount}
           className="w-full bg-[#00c853] hover:bg-[#00e676] disabled:opacity-50 text-white py-4 rounded-xl font-black uppercase text-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-green-500/20">
           {isPlacingTrade && placingDirection === 'buy' ? 'Placing...' : <><Send size={20} className="-rotate-45" /> Buy</>}
         </button>
 
-        <button onClick={() => placeTrade('sell')} disabled={isPlacingTrade || !token || currentBalance < amount}
+        <button onClick={() => placeTrade('sell')} disabled={isPlacingTrade || !token || getSafeBalance() < amount}
           className="w-full bg-[#ff3d00] hover:bg-[#ff6e40] disabled:opacity-50 text-white py-4 rounded-xl font-black uppercase text-lg flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-red-500/20">
           {isPlacingTrade && placingDirection === 'sell' ? 'Placing...' : <><History size={20} className="scale-x-[-1]" /> Sell</>}
         </button>
       </div>
 
       {showKeypad && (
-        <div className={`absolute inset-x-0 bottom-0 border-t-2 border-green-500 p-4 rounded-t-2xl shadow-[0_-20px_50px_rgba(0,0,0,0.2)] z-50 transition-colors ${darkMode ? "bg-[#1e1c1b]" : "bg-white"}`}>
+        <div className={`fixed inset-x-0 bottom-0 border-t-2 border-green-500 p-4 rounded-t-2xl shadow-[0_-20px_50px_rgba(0,0,0,0.2)] z-50 transition-colors ${darkMode ? "bg-[#1e1c1b]" : "bg-white"}`}>
           <div className="flex justify-between items-center mb-4">
             <span className={`text-sm font-bold ${darkMode ? "text-white" : "text-black"}`}>Enter Amount</span>
             <X size={20} className="text-gray-400 cursor-pointer" onClick={() => setShowKeypad(false)} />
