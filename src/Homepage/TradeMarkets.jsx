@@ -32,21 +32,30 @@ const TrendGraph = ({ isPositive }) => {
   );
 };
 
-// --- Data Configuration ---
 const marketData = {
   popular: [
-    { id: 1, name: "Bitcoin", symbol: "BTC/USD", price: "90,277.20", high: "90,354.31", change: "+0.09%", isPositive: true, image: "https://cryptologos.cc/logos/bitcoin-btc-logo.png", volume: "$2.4B" },
-    { id: 2, name: "XRP", symbol: "XRP/USD", price: "2.00767", high: "2.0313", change: "+1.18%", isPositive: true, image: "https://cryptologos.cc/logos/xrp-xrp-logo.png", volume: "$1.8B" },
-    { id: 3, name: "Tether", symbol: "USDT/USD", price: "1.0001", high: "1.0000", change: "-0.01%", isPositive: false, image: "https://cryptologos.cc/logos/tether-usdt-logo.png", volume: "$3.1B" },
-    { id: 4, name: "Solana", symbol: "SOL/USD", price: "132.30", high: "132.83", change: "+0.40%", isPositive: true, image: "https://cryptologos.cc/logos/solana-sol-logo.png", volume: "$892M" },
+    { id: 1, name: "Bitcoin", symbol: "BTC/USD", price: "90,277.20", high: "90,354.31", change: "+0.09%", isPositive: true, image: "https://cryptologos.cc/logos/bitcoin-btc-logo.png" },
+    { id: 2, name: "Gold", symbol: "XAU/USD", price: "2,642.50", high: "2,650.10", change: "+0.45%", isPositive: true, image: "https://cdn-icons-png.flaticon.com/512/2913/2913501.png" },
+    { id: 3, name: "Apple", symbol: "AAPL", price: "228.22", high: "230.10", change: "-0.12%", isPositive: false, image: "https://cdn-icons-png.flaticon.com/512/0/747.png" },
+    { id: 4, name: "EUR/USD", symbol: "FOREX", price: "1.0850", high: "1.0900", change: "-0.05%", isPositive: false, image: "https://cdn-icons-png.flaticon.com/512/197/197615.png" },
   ],
   crypto: [
-    { id: 1, name: "Ethereum", symbol: "ETH/USD", price: "3,100.50", high: "3,150.20", change: "+1.50%", isPositive: true, image: "https://cryptologos.cc/logos/ethereum-eth-logo.png", volume: "$1.9B" },
-    { id: 2, name: "Dogecoin", symbol: "DOGE/USD", price: "0.1200", high: "0.1250", change: "-2.10%", isPositive: false, image: "https://cryptologos.cc/logos/dogecoin-doge-logo.png", volume: "$678M" },
+    { id: 1, name: "Ethereum", symbol: "ETH/USD", price: "3,100.50", high: "3,150.20", change: "+1.50%", isPositive: true, image: "https://cryptologos.cc/logos/ethereum-eth-logo.png" },
+    { id: 2, name: "Solana", symbol: "SOL/USD", price: "132.30", high: "132.83", change: "+0.40%", isPositive: true, image: "https://cryptologos.cc/logos/solana-sol-logo.png" },
+    { id: 3, name: "Dogecoin", symbol: "DOGE/USD", price: "0.1200", high: "0.1250", change: "-2.10%", isPositive: false, image: "https://cryptologos.cc/logos/dogecoin-doge-logo.png" },
+    { id: 4, name: "Cardano", symbol: "ADA/USD", price: "0.4500", high: "0.4600", change: "+0.80%", isPositive: true, image: "https://cryptologos.cc/logos/cardano-ada-logo.png" },
   ],
-  forex: [
-    { id: 1, name: "EUR/USD", symbol: "FX", price: "1.0850", high: "1.0900", change: "-0.05%", isPositive: false, image: "https://cdn-icons-png.flaticon.com/512/197/197615.png", volume: "$4.2B" },
-    { id: 2, name: "GBP/USD", symbol: "FX", price: "1.2700", high: "1.2750", change: "+0.12%", isPositive: true, image: "https://cdn-icons-png.flaticon.com/512/197/197374.png", volume: "$3.8B" },
+  commodities: [
+    { id: 1, name: "Gold", symbol: "XAU/USD", price: "2,642.50", high: "2,650.10", change: "+0.45%", isPositive: true, image: "https://cdn-icons-png.flaticon.com/512/2913/2913501.png" },
+    { id: 2, name: "Silver", symbol: "XAG/USD", price: "31.20", high: "31.50", change: "-0.30%", isPositive: false, image: "https://cdn-icons-png.flaticon.com/512/5833/5833871.png" },
+    { id: 3, name: "Crude Oil", symbol: "WTI", price: "72.40", high: "73.10", change: "+1.20%", isPositive: true, image: "https://cdn-icons-png.flaticon.com/512/2967/2967231.png" },
+    { id: 4, name: "Natural Gas", symbol: "NG", price: "2.85", high: "2.90", change: "-1.10%", isPositive: false, image: "https://cdn-icons-png.flaticon.com/512/1146/1146860.png" },
+  ],
+  stocks: [
+    { id: 1, name: "Tesla", symbol: "TSLA", price: "320.10", high: "325.00", change: "+2.40%", isPositive: true, image: "https://cdn-icons-png.flaticon.com/512/5969/5969031.png" },
+    { id: 2, name: "Nvidia", symbol: "NVDA", price: "145.30", high: "148.00", change: "+3.10%", isPositive: true, image: "https://cdn-icons-png.flaticon.com/512/5969/5969188.png" },
+    { id: 3, name: "Google", symbol: "GOOGL", price: "175.50", high: "176.20", change: "-0.40%", isPositive: false, image: "https://cdn-icons-png.flaticon.com/512/2991/2991148.png" },
+    { id: 4, name: "Amazon", symbol: "AMZN", price: "189.20", high: "192.00", change: "+0.50%", isPositive: true, image: "https://cdn-icons-png.flaticon.com/512/5968/5968202.png" },
   ]
 };
 
@@ -84,32 +93,32 @@ const TradeMarkets = () => {
             Real-time market data across 100+ assets with institutional-grade execution
           </p>
         </div>
+            {/* Responsive Tabs Updated */}
+           <div className="mb-6 sm:mb-10 md:mb-12">
+  <div className="flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto hide-scrollbar pb-2">
+    {[
+      { key: 'popular', label: 'Popular', icon: Sparkles },
+      { key: 'crypto', label: 'Crypto', icon: Zap },
+      { key: 'stocks', label: 'Stocks', icon: Activity },
+      { key: 'commodities', label: 'Commodities', icon: DollarSign }
+    ].map(({ key, label, icon: Icon }) => (
+      <button
+        key={key}
+        onClick={() => setActiveTab(key)}
+        className={`flex-shrink-0 px-3 py-1.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg md:rounded-xl text-xs sm:text-sm md:text-base font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap 
+          ${activeTab === key
+            ? 'bg-[#f99616] text-white shadow-xl shadow-orange-500/20'
+            : (darkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-500 hover:text-black hover:bg-gray-100')
+          }`}
+      >
+        <Icon className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+        {label}
+      </button>
+    ))}
+  </div>
+</div>
 
-        {/* Responsive Tabs */}
-        <div className="mb-6 sm:mb-10 md:mb-12">
-          <div className="flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto hide-scrollbar pb-2">
-            {[
-              { key: 'popular', label: 'Popular', icon: Sparkles },
-              { key: 'crypto', label: 'Crypto', icon: Zap },
-              { key: 'forex', label: 'Forex', icon: DollarSign }
-            ].map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                className={`flex-shrink-0 px-3 py-1.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg md:rounded-xl text-xs sm:text-sm md:text-base font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap 
-                  ${activeTab === key
-                    ? 'bg-[#f99616] text-white shadow-xl shadow-orange-500/20'
-                    : (darkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-500 hover:text-black hover:bg-gray-100')
-                  }`}
-              >
-                <Icon className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* MOBILE VIEW (Cards) */}
+           {/* MOBILE VIEW (Cards) */}
         <div className="lg:hidden space-y-3 mb-8">
           {marketData[activeTab].map((item) => (
             <div

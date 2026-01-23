@@ -34,10 +34,13 @@ const AdminSidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
       background: darkMode ? '#0d0d0d' : '#ffffff',
       color: darkMode ? '#ffffff' : '#000000'
     }).then((result) => {
-      if (result.isConfirmed) {
-        localStorage.removeItem("admin_token");
-        navigate('/adminlogin');
-      }
+    if (result.isConfirmed) {
+      localStorage.removeItem("admin_token");
+      localStorage.removeItem("admin_active_tab"); // Tab state clear karein
+      // Session storage bhi clear kar sakte hain safety ke liye
+      sessionStorage.clear();
+      navigate('/adminlogin');
+    }
     });
   };
 
@@ -148,16 +151,15 @@ const AdminSidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
           darkMode={darkMode}
         />
 
-        {/* TRADES */}
-        <SidebarLink
-          id="trades"
-          label="Trade History"
-          icon={<History size={18} />}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          setIsOpen={setIsOpen}
-          darkMode={darkMode}
-        />
+<SidebarLink
+  id="trades" // 🚀 Dashboard ke 'trades' case se match hona chahiye
+  label="Trade History"
+  icon={<History size={18} />}
+  activeTab={activeTab}
+  setActiveTab={setActiveTab}
+  setIsOpen={setIsOpen}
+  darkMode={darkMode}
+/>
         <SidebarLink 
           id="influencer_promo" 
           label="Promo Assets" 
@@ -177,6 +179,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
   setIsOpen={setIsOpen}
   darkMode={darkMode}
 />
+
       </nav>
 
       {/* LOGOUT */}

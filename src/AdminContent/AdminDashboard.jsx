@@ -12,6 +12,7 @@ import API_CONFIG from '../config';
 import { useTheme } from "../context/ThemeContext";
 import InfluencerPromo from './InfluencerPromo'; // 🚀 Import naya component
 import AdminSupport from './AdminSupport';
+import AdminTradeHistory from './AdminTradeHistory';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(() => {
@@ -81,6 +82,7 @@ const AdminDashboard = () => {
       case 'finance_pending': return <AdminFinance />;
       case 'finance_history': return <AdminFinanceHistory />;
       case 'withdrawals': return <AdminWithdrawals />;
+      case 'trades': return <AdminTradeHistory />; // 🚀 Case add kiya trades ke liye
       case 'kyc': return <AdminKYC />;
       default: return <AdminOverview />;
     }

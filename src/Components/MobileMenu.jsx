@@ -10,12 +10,16 @@ import {
   UserPlus,
   LogIn,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { useTheme } from "../context/ThemeContext"; // Context Import
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
 const MobileMenu = ({ isOpen, onClose }) => {
-  const { darkMode } = useTheme(); // Theme Hook
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // 🔍 Home page check (sirf yahin sidebar hota hai)
+  const isHomePage = location.pathname === "/";
 
   const handleBtnClick = (path) => {
     navigate(path);
@@ -24,115 +28,131 @@ const MobileMenu = ({ isOpen, onClose }) => {
 
   const handleDemoClick = (e) => {
     e.preventDefault();
-    navigate("/trading", { state: { mode: 'demo' } }); 
+    navigate("/trading", { state: { mode: "demo" } });
     onClose();
   };
 
   return (
     <div
-      className={`fixed top-[60px] left-0 w-full transition-all duration-500 ease-in-out z-40 ${
-        isOpen
+      className={`
+        fixed top-[60px] left-0 transition-all duration-500 ease-in-out
+        z-[9999]
+        ${isOpen
           ? "h-[calc(100vh-60px)] opacity-100 visible"
           : "h-0 opacity-0 invisible"
-      } ${darkMode ? "bg-black" : "bg-white"}`}
+        }
+        ${darkMode ? "bg-black" : "bg-white"}
+
+        w-full
+        ${isHomePage ? "xl:w-[calc(100%-320px)]" : "xl:w-full"}
+      `}
     >
-      <div className="h-full overflow-y-auto custom-scrollbar pb-10">
-        <div className="p-6 md:p-8 max-w-6xl mx-auto text-sm md:text-base">
+      {/* Scroll container */}
+      <div className="h-full overflow-y-auto overflow-x-hidden custom-scrollbar">
+        <div className="p-4 sm:p-6 md:p-8 w-full max-w-7xl mx-auto text-sm md:text-base">
 
           {/* HEADER */}
-          <div className="mb-6">
-            <h2 className={`text-3xl md:text-4xl font-bold mb-2 font-nunito-custom transition-colors ${darkMode ? "text-white" : "text-black"}`}>
+          <div className="mb-4 sm:mb-6">
+            <h2
+              className={`text-2xl md:text-4xl font-bold mb-1 transition-colors ${
+                darkMode ? "text-white" : "text-black"
+              }`}
+            >
               Navigation
             </h2>
             <div className="h-0.5 w-16 bg-blue-500"></div>
           </div>
 
-          {/* AUTH BUTTONS - ORIGINAL SIZES RESTORED */}
-          <div className="flex gap-2 sm:gap-3 mb-8">
+          {/* AUTH BUTTONS */}
+          <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
             <button
               onClick={() => handleBtnClick("/signup")}
-              className="flex items-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-3 sm:py-2.5 sm:px-6 rounded-md sm:rounded-lg text-xs sm:text-sm md:text-base transition-colors"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2
+                bg-blue-600 hover:bg-blue-700 text-white font-semibold
+                py-2 px-4 rounded-md sm:rounded-lg transition-colors"
             >
-              <UserPlus size={14} className="sm:size-[18px]" />
+              <UserPlus size={16} />
               Create Account
             </button>
 
             <button
               onClick={() => handleBtnClick("/login")}
-              className="flex items-center gap-1.5 sm:gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-1.5 px-3 sm:py-2.5 sm:px-6 rounded-md sm:rounded-lg text-xs sm:text-sm md:text-base transition-colors"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2
+                bg-orange-600 hover:bg-orange-700 text-white font-semibold
+                py-2 px-4 rounded-md sm:rounded-lg transition-colors"
             >
-              <LogIn size={14} className="sm:size-[18px]" />
+              <LogIn size={16} />
               Sign In
             </button>
           </div>
 
           {/* GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
 
             {/* GET STARTED */}
-            <div className={`${darkMode ? "bg-zinc-900 border-zinc-800" : "bg-gray-50 border-gray-100"} rounded-lg p-5 border transition-colors`}>
-              <h3 className={`${darkMode ? "text-gray-400" : "text-gray-500"} font-bold mb-4 uppercase text-sm md:text-base`}>
+            <div className={`${darkMode ? "bg-zinc-900 border-zinc-800" : "bg-gray-50 border-gray-200"} border rounded-lg p-4`}>
+              <h3 className="text-gray-500 font-bold mb-3 uppercase text-sm">
                 Get Started
               </h3>
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 <li>
-                  <button 
-                    onClick={handleDemoClick} 
-                    className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"} transition-colors`}
+                  <button
+                    onClick={handleDemoClick}
+                    className="hover:text-blue-500 transition-colors"
                   >
                     Demo Account
                   </button>
                 </li>
-                <li><Link to="/quickstart" onClick={onClose} className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>Quick Setup</Link></li>
-                <li><Link to="/guides" onClick={onClose} className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>Beginner Guides</Link></li>
-                <li><Link to="/tools" onClick={onClose} className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>Trading Tools</Link></li>
+                <li><Link to="/quickstart" onClick={onClose}>Quick Setup</Link></li>
+                <li><Link to="/guides" onClick={onClose}>Beginner Guides</Link></li>
+                <li><Link to="/tools" onClick={onClose}>Trading Tools</Link></li>
               </ul>
             </div>
 
-            {/* Platform Features */}
-            <div className={`${darkMode ? "bg-zinc-900 border-zinc-800" : "bg-gray-50 border-gray-100"} rounded-lg p-5 border transition-colors`}>
-              <h3 className={`${darkMode ? "text-gray-400" : "text-gray-500"} font-bold mb-4 uppercase text-sm md:text-base`}>
+            {/* PLATFORM FEATURES */}
+            <div className={`${darkMode ? "bg-zinc-900 border-zinc-800" : "bg-gray-50 border-gray-200"} border rounded-lg p-4`}>
+              <h3 className="text-gray-500 font-bold mb-3 uppercase text-sm">
                 Platform Features
               </h3>
-              <ul className="space-y-3">
-                <li><Link to="/assets" onClick={onClose} className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>Multiple Assets</Link></li>
-                <li><Link to="/payments" onClick={onClose} className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>Fast Payments</Link></li>
-                <li><Link to="/rewards" onClick={onClose} className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>Offers & Rewards</Link></li>
-                <li><Link to="/copy-trading" onClick={onClose} className={`${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>Copy Trading</Link></li>
+              <ul className="space-y-2">
+                <li><Link to="/assets" onClick={onClose}>Multiple Assets</Link></li>
+                <li><Link to="/payments" onClick={onClose}>Fast Payments</Link></li>
+                <li><Link to="/rewards" onClick={onClose}>Offers & Rewards</Link></li>
+                <li><Link to="/copy-trading" onClick={onClose}>Copy Trading</Link></li>
               </ul>
             </div>
 
-            {/* Access */}
-            <div className={`${darkMode ? "bg-zinc-900 border-zinc-800" : "bg-gray-50 border-gray-100"} rounded-lg p-5 border transition-colors`}>
-              <h3 className={`${darkMode ? "text-gray-400" : "text-gray-500"} font-bold mb-4 uppercase text-sm md:text-base`}>
+            {/* ACCESS */}
+            <div className={`${darkMode ? "bg-zinc-900 border-zinc-800" : "bg-gray-50 border-gray-200"} border rounded-lg p-4`}>
+              <h3 className="text-gray-500 font-bold mb-3 uppercase text-sm">
                 Access
               </h3>
-              <ul className="space-y-3">
-                <li>
-                  <Link to="/trading" onClick={onClose} className={`flex items-center gap-2 ${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>
-                    <Globe size={18} /> Web Platform
-                  </Link>
+              <ul className="space-y-2">
+                <li className="flex items-center gap-2">
+                  <Globe size={16} />
+                  <Link to="/trading" onClick={onClose}>Web Platform</Link>
                 </li>
-                <li>
-                  <Link to="/TelegramSupportPage" onClick={onClose} className={`flex items-center gap-2 ${darkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"}`}>
-                    <Send size={18} /> Telegram Support
+                <li className="flex items-center gap-2">
+                  <Send size={16} />
+                  <Link to="/TelegramSupportPage" onClick={onClose}>
+                    Telegram Support
                   </Link>
                 </li>
               </ul>
             </div>
 
-            {/* Company */}
-            <div className={`${darkMode ? "bg-zinc-900 border-zinc-800" : "bg-gray-50 border-gray-100"} rounded-lg p-5 border transition-colors`}>
-              <h3 className={`${darkMode ? "text-gray-400" : "text-gray-500"} font-bold mb-4 uppercase text-sm md:text-base`}>
+            {/* COMPANY */}
+            <div className={`${darkMode ? "bg-zinc-900 border-zinc-800" : "bg-gray-50 border-gray-200"} border rounded-lg p-4`}>
+              <h3 className="text-gray-500 font-bold mb-3 uppercase text-sm">
                 Company
               </h3>
-              <ul className={`space-y-3 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                <li><Link to="/aboutthecompany" onClick={onClose} className="hover:text-blue-500">About Us</Link></li>
-                <li><Link to="/maxtradingblog" onClick={onClose} className="hover:text-blue-500">Insights & Blog</Link></li>
-                <li><Link to="/contacts" onClick={onClose} className="hover:text-blue-500">Contact</Link></li>
-                <li><Link to="/supportservice" onClick={onClose} className="hover:text-blue-500">Support Center</Link></li>
-                <li><Link to="/amlkycpolicy" onClick={onClose} className="hover:text-blue-500">Terms of Service</Link></li>
-                <li><Link to="/privacypolicy" onClick={onClose} className="hover:text-blue-500">Privacy Policy</Link></li>
+              <ul className="space-y-2">
+                <li><Link to="/aboutthecompany" onClick={onClose}>About Us</Link></li>
+                <li><Link to="/maxtradingblog" onClick={onClose}>Insights & Blog</Link></li>
+                <li><Link to="/contacts" onClick={onClose}>Contact</Link></li>
+                <li><Link to="/supportservice" onClick={onClose}>Support Center</Link></li>
+                <li><Link to="/amlkycpolicy" onClick={onClose}>Terms of Service</Link></li>
+                <li><Link to="/privacypolicy" onClick={onClose}>Privacy Policy</Link></li>
               </ul>
             </div>
 
@@ -141,12 +161,12 @@ const MobileMenu = ({ isOpen, onClose }) => {
           {/* SOCIAL */}
           <div className={`mt-8 pt-6 border-t ${darkMode ? "border-zinc-800" : "border-gray-200"}`}>
             <div className="flex gap-5 justify-center flex-wrap">
-              <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors"><Facebook size={22} /></a>
-              <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors"><Send size={22} /></a>
-              <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors"><Instagram size={22} /></a>
-              <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors"><Twitter size={22} /></a>
-              <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors"><Youtube size={22} /></a>
-              <a href="#" className="text-gray-400 hover:text-blue-500 transition-colors"><MessageCircle size={22} /></a>
+              <Facebook size={20} />
+              <Instagram size={20} />
+              <Twitter size={20} />
+              <Youtube size={20} />
+              <Send size={20} />
+              <MessageCircle size={20} />
             </div>
           </div>
 

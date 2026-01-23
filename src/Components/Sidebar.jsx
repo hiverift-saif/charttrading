@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom"; // ← added us
 import { Eye, EyeOff, Mail, Lock, Loader2, UserPlus, LogIn, Chrome, ShieldCheck, Link2 } from "lucide-react";
 import API_CONFIG from '../config';
 import { useTheme } from "../context/ThemeContext";
+import { Link } from "react-router-dom";
 
 const Sidebar = () => {
   const { darkMode } = useTheme();
@@ -178,7 +179,7 @@ const Sidebar = () => {
                 <input type="checkbox" checked={stayLogged} onChange={() => setStayLogged(!stayLogged)} className="w-4 h-4 accent-purple-600 rounded cursor-pointer" />
                 Stay logged
               </label>
-              <a href="#" className="text-orange-500 hover:text-orange-400 transition-colors">Forgot password?</a>
+          <Link to="/forgetpass" >    <a href="/forgetpass" className="text-orange-500 hover:text-orange-400 transition-colors">Forgot password?</a></Link>
             </div>
 
             <button onClick={handleLoginSubmit} disabled={isLoading} className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-400 text-white font-bold rounded-lg transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-orange-500/20">

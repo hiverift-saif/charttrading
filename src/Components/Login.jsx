@@ -233,7 +233,7 @@ const Login = () => {
               <span className={`text-xs ${darkMode ? "text-white/60" : "text-gray-500"}`}>Remember me</span>
             </label>
 
-            <a href="/forgot-password" className={`text-xs hover:text-[#f99616] transition-colors ${darkMode ? "text-white/60" : "text-gray-500"}`}>
+            <a href="/forgetpass" className={`text-xs hover:text-[#f99616] transition-colors ${darkMode ? "text-white/60" : "text-gray-500"}`}>
               Forgot password?
             </a>
           </div>

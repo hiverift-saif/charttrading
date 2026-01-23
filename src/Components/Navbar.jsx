@@ -174,7 +174,7 @@ const Navbar = ({ onOpenAuth }) => {
       </div>
 
       {/* --- RIGHT SECTION --- */}
-      <div className="ml-auto flex items-center gap-1.5 md:gap-3 z-20">
+      <div className="ml-auto flex items-center gap-1.5 md:gap-3 z-20 md:hidden ">
         
         {/* 🚀 DARK MODE TOGGLE (Only visible on Mobile in the Right section) */}
         <button 

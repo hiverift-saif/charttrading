@@ -152,7 +152,7 @@ export default function AffiliateLogin() {
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
                 <label className={`text-[10px] font-black uppercase tracking-widest transition-colors ${darkMode ? "text-gray-500" : "text-gray-400"}`}>Password</label>
-                <Link to="/forgot-password" size="sm" className="text-[10px] font-black text-[#f99616] hover:text-white transition-colors uppercase tracking-widest">Forgot?</Link>
+                <Link to="/forgetpass" size="sm" className="text-[10px] font-black text-[#f99616] hover:text-white transition-colors uppercase tracking-widest">Forgot?</Link>
               </div>
               <div className="relative group">
                 <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${darkMode ? "text-gray-600" : "text-gray-400"} group-focus-within:text-[#f99616]`} />

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Check, Target, Trophy, Globe } from "lucide-react";
 import { useTheme } from "../context/ThemeContext"; // Context Import
+import mobile from "../assets/Mobile1.png";
 
 const platformsData = [
   {
@@ -60,10 +61,11 @@ export default function DownloadAccessibility() {
             {/* Main Phone */}
             <div className="relative z-10 animate-float">
               <img
-                src="https://www.fpmarkets.com/images/app/app-hero@1x.png"
+                src={mobile}
                 alt="Trading App"
-                className="w-full max-w-[280px] md:max-w-2xl mx-auto drop-shadow-2xl"
+                className="w-full max-w-[280px] md:max-w-[700px] h-auto drop-shadow-2xl"
               />
+             
             </div>
           </div>
 

@@ -88,7 +88,7 @@ const HeroSection = () => {
         </button>
         </Link>
 
-         <Link to="/">
+         <Link to="/signup">
         <button className={`w-full sm:w-auto font-medium text-sm md:text-base py-2.5 px-6 md:py-3 md:px-8 font-moderustic rounded-xl transition-all border active:scale-95
           ${darkMode ? "bg-[#26211f] hover:bg-[#2e2724] text-white border-[#38312e]" : "bg-white hover:bg-gray-50 text-slate-900 border-gray-300 shadow-sm"}`}>
           Open Demo Account
