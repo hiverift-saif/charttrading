@@ -31,13 +31,11 @@ const TradePanel = () => {
   const profit = (amount * (payoutPercentage / 100)).toFixed(2);
   const totalReturn = (Number(amount) + Number(profit)).toFixed(2);
 
-  // 🚀 FIXED: Helper to get the correct numeric balance
   const getSafeBalance = () => {
     return accountType === 'demo' ? Number(demoBalance) : Number(balance);
   };
 
   const placeTrade = async (direction) => {
-    // Prevent double clicks and invalid trades
     if (tradeLock.current || isPlacingTrade) return;
     
     const currentBal = getSafeBalance();
@@ -46,7 +44,6 @@ const TradePanel = () => {
       return;
     }
 
-    // 🚀 STEP 1: Syncing Lock ON (Stop background balance updates)
     dispatch(setSyncing(true)); 
 
     const apiDirection = direction === 'buy' ? 'up' : 'down';
@@ -81,7 +78,6 @@ const TradePanel = () => {
       const result = await response.json();
 
       if (response.ok) {
-        // 🚀 STEP 2: Update Local Redux immediately (Subtract from wallet)
         dispatch(addOpenTrade({
           id: result.tradeId || Date.now(),
           symbol: tradeData.asset,
@@ -101,8 +97,6 @@ const TradePanel = () => {
 
         setShowKeypad(false);
 
-        // 🚀 STEP 3: Keep wallet locked for 7 seconds. 
-        // This gives backend enough time to update so next sync is accurate.
         setTimeout(() => {
           dispatch(setSyncing(false));
           tradeLock.current = false;
@@ -170,25 +164,65 @@ const TradePanel = () => {
         </div>
       </div>
 
-      <div className={`border rounded-lg overflow-hidden transition-all ${showKeypad ? 'border-green-500 ring-1 ring-green-500/20' : darkMode ? 'bg-black border-gray-800' : 'bg-white border-gray-200 shadow-sm'}`}>
-        <div className="p-3 cursor-pointer text-center" onClick={() => setShowKeypad(!showKeypad)}>
-          <div className="flex items-center justify-center gap-1 mb-1">
-            <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Amount</span>
-            <Info size={12} className="text-gray-400" />
+      {/* Amount Control Container */}
+      <div className="relative">
+        <div className={`border rounded-lg overflow-hidden transition-all ${showKeypad ? 'border-green-500 ring-1 ring-green-500/20' : darkMode ? 'bg-black border-gray-800' : 'bg-white border-gray-200 shadow-sm'}`}>
+          <div className="p-3 cursor-pointer text-center" onClick={() => setShowKeypad(!showKeypad)}>
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Amount</span>
+              <Info size={12} className="text-gray-400" />
+            </div>
+            <div className="text-center">
+              <span className="text-xl font-bold text-green-500">$</span>
+              <span className={`text-xl font-bold ml-1 transition-colors ${darkMode ? "text-white" : "text-black"}`}>{amount}</span>
+            </div>
           </div>
-          <div className="text-center">
-            <span className="text-xl font-bold text-green-500">$</span>
-            <span className={`text-xl font-bold ml-1 transition-colors ${darkMode ? "text-white" : "text-black"}`}>{amount}</span>
+          <div className={`flex border-t transition-colors ${darkMode ? "border-gray-800" : "border-gray-100"}`}>
+            <button onClick={() => setAmount(prev => Math.max(1, prev - 1))} className={`flex-1 py-3 flex justify-center border-r transition-colors ${darkMode ? "border-gray-800 hover:bg-white/5" : "border-gray-100 hover:bg-gray-50"}`}>
+              <Minus size={18} />
+            </button>
+            <button onClick={() => setAmount(prev => prev + 1)} className={`flex-1 py-3 flex justify-center transition-colors ${darkMode ? "hover:bg-white/5" : "hover:bg-gray-50"}`}>
+              <Plus size={18} />
+            </button>
           </div>
         </div>
-        <div className={`flex border-t transition-colors ${darkMode ? "border-gray-800" : "border-gray-100"}`}>
-          <button onClick={() => setAmount(prev => Math.max(1, prev - 1))} className={`flex-1 py-3 flex justify-center border-r transition-colors ${darkMode ? "border-gray-800 hover:bg-white/5" : "border-gray-100 hover:bg-gray-50"}`}>
-            <Minus size={18} />
-          </button>
-          <button onClick={() => setAmount(prev => prev + 1)} className={`flex-1 py-3 flex justify-center transition-colors ${darkMode ? "hover:bg-white/5" : "hover:bg-gray-50"}`}>
-            <Plus size={18} />
-          </button>
-        </div>
+
+        {/* 🚀 RESPONSIVE KEYPAD: Popover for Laptop, Bottom Sheet for Mobile */}
+{showKeypad && (
+  <div className={`fixed inset-x-0 bottom-0 sm:absolute sm:inset-x-0 sm:bottom-auto sm:top-full sm:mt-1 border-t sm:border border-green-500/30 p-2 rounded-t-xl sm:rounded-xl shadow-2xl z-50 transition-colors animate-in zoom-in-95 duration-200 ${darkMode ? "bg-[#1e1c1b]" : "bg-white"}`}>
+    {/* Minimal Header */}
+    <div className="flex justify-between items-center mb-1.5 px-1">
+      <span className={`text-[8px] font-black uppercase tracking-[2px] ${darkMode ? "text-gray-500" : "text-gray-400"}`}>Stake Terminal</span>
+      <X size={14} className="text-gray-500 cursor-pointer hover:text-red-500 transition-colors" onClick={() => setShowKeypad(false)} />
+    </div>
+    
+    {/* Ultra Compact Grid */}
+    <div className="grid grid-cols-3 gap-1 mb-2">
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9, '.', 0].map((num) => (
+        <button 
+          key={num} 
+          onClick={() => handleKeyClick(num)} 
+          className={`h-10 rounded-md text-sm font-black transition-all active:scale-90 ${darkMode ? "bg-[#2a2e39] text-white hover:bg-[#363b4a]" : "bg-gray-100 text-black hover:bg-gray-200"}`}
+        >
+          {num}
+        </button>
+      ))}
+      <button 
+        onClick={() => handleKeyClick('del')} 
+        className="h-10 bg-red-600/10 rounded-md flex items-center justify-center hover:bg-red-600/20 transition-all active:scale-90"
+      >
+        <Delete size={16} className="text-red-500" />
+      </button>
+    </div>
+    
+    <button 
+      onClick={() => setShowKeypad(false)} 
+      className="w-full py-1.5 bg-green-600 hover:bg-green-500 rounded-md text-[10px] font-black text-white uppercase tracking-widest transition-all active:scale-95"
+    >
+      Confirm
+    </button>
+  </div>
+)}
       </div>
 
       <div className={`border rounded-lg p-3 space-y-2 transition-colors ${darkMode ? "bg-black border-gray-800" : "bg-gray-50 border-gray-200 shadow-sm"}`}>
@@ -222,27 +256,6 @@ const TradePanel = () => {
           {isPlacingTrade && placingDirection === 'sell' ? 'Placing...' : <><History size={20} className="scale-x-[-1]" /> Sell</>}
         </button>
       </div>
-
-      {showKeypad && (
-        <div className={`fixed inset-x-0 bottom-0 border-t-2 border-green-500 p-4 rounded-t-2xl shadow-[0_-20px_50px_rgba(0,0,0,0.2)] z-50 transition-colors ${darkMode ? "bg-[#1e1c1b]" : "bg-white"}`}>
-          <div className="flex justify-between items-center mb-4">
-            <span className={`text-sm font-bold ${darkMode ? "text-white" : "text-black"}`}>Enter Amount</span>
-            <X size={20} className="text-gray-400 cursor-pointer" onClick={() => setShowKeypad(false)} />
-          </div>
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, '.', 0].map((num) => (
-              <button key={num} onClick={() => handleKeyClick(num)} 
-                className={`py-4 rounded-xl text-xl font-bold transition-colors ${darkMode ? "bg-[#2a2e39] text-white hover:bg-[#3f4451]" : "bg-gray-100 text-black hover:bg-gray-200"}`}>
-                {num}
-              </button>
-            ))}
-            <button onClick={() => handleKeyClick('del')} className="py-4 bg-red-600/20 rounded-xl flex items-center justify-center hover:bg-red-600/30">
-              <Delete size={22} className="text-red-500" />
-            </button>
-          </div>
-          <button onClick={() => setShowKeypad(false)} className="w-full py-3 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-white uppercase tracking-wider transition-all">Confirm</button>
-        </div>
-      )}
     </div>
   );
 };

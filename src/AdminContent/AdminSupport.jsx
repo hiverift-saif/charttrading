@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Filter, MessageSquare, ExternalLink, Clock, CheckCircle, AlertCircle, Loader2, MoreVertical } from 'lucide-react';
+import { 
+  Search, MessageSquare, ExternalLink, Clock, 
+  CheckCircle, AlertCircle, Loader2, ChevronLeft, 
+  ChevronRight, User as UserIcon 
+} from 'lucide-react';
 import API_CONFIG from '../config';
 import { useTheme } from "../context/ThemeContext";
 
 const AdminSupport = () => {
   const { darkMode } = useTheme();
   const [tickets, setTickets] = useState([]);
+  const [filteredTickets, setFilteredTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // 🔍 Search & Filter States
+  const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+
+  // 🔢 Pagination States
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchAllTickets = async () => {
@@ -19,6 +31,7 @@ const AdminSupport = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setTickets(res.data.tickets || []);
+        setFilteredTickets(res.data.tickets || []);
       } catch (err) {
         console.error("Support Fetch Error:", err);
       } finally {
@@ -28,114 +41,193 @@ const AdminSupport = () => {
     fetchAllTickets();
   }, []);
 
-  const filteredTickets = tickets.filter(t => 
-    filterStatus === 'all' ? true : t.status === filterStatus
-  );
+  // 🚀 Logic: Apply Filters & Search
+  useEffect(() => {
+    let result = tickets;
+
+    if (searchTerm) {
+      result = result.filter(t => 
+        t.userId?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.subject?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (filterStatus !== 'all') {
+      result = result.filter(t => t.status === filterStatus);
+    }
+
+    setFilteredTickets(result);
+    setCurrentPage(1); // Reset page to 1 when filtering
+  }, [searchTerm, filterStatus, tickets]);
+
+  // 🔢 Pagination Calculation
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredTickets.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
+
+  if (loading) return <div className="h-96 flex items-center justify-center"><Loader2 className="animate-spin text-[#f99616]" /></div>;
 
   return (
-    <div className="space-y-6">
-      {/* 🚀 HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 animate-in fade-in duration-700">
+      
+      {/* HEADER SECTION */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-black uppercase italic tracking-tighter">Support <span className="text-[#f99616]">Management</span></h2>
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Global User Assistance Protocol</p>
+          <h2 className="text-xl md:text-2xl font-black uppercase italic tracking-tighter transition-colors">
+            Support <span className="text-[#f99616]">Tickets</span>
+          </h2>
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest italic">Global User Assistance Protocol</p>
         </div>
-        
-        <div className="flex items-center gap-2 bg-[#0d0d0d] p-1 rounded-xl border border-gray-800">
-          {['all', 'open', 'closed'].map((status) => (
-            <button
-              key={status}
-              onClick={() => setFilterStatus(status)}
-              className={`px-6 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
-                filterStatus === status 
-                ? 'bg-[#f99616] text-white shadow-lg' 
-                : 'text-gray-500 hover:text-white'
-              }`}
-            >
-              {status}
-            </button>
-          ))}
+        <div className="bg-[#f99616]/10 px-4 py-1.5 rounded-xl border border-[#f99616]/20">
+           <span className="text-[10px] font-black text-[#f99616] uppercase tracking-widest">
+              {filteredTickets.length} Total Logs
+           </span>
         </div>
       </div>
 
-      {/* 🚀 TABLE CONTAINER */}
-      <div className={`rounded-[2rem] border overflow-hidden transition-all duration-500 ${
-        darkMode ? 'bg-[#0a0a0a] border-gray-800' : 'bg-white border-slate-200 shadow-xl'
-      }`}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className={`${darkMode ? 'bg-white/5' : 'bg-gray-50'} border-b ${darkMode ? 'border-gray-800' : 'border-slate-100'}`}>
-                <th className="p-5 text-[10px] font-black uppercase tracking-widest text-gray-500">Ticket Info</th>
-                <th className="p-5 text-[10px] font-black uppercase tracking-widest text-gray-500">User Email</th>
-                <th className="p-5 text-[10px] font-black uppercase tracking-widest text-gray-500">Category</th>
-                <th className="p-5 text-[10px] font-black uppercase tracking-widest text-gray-500">Subject</th>
-                <th className="p-5 text-[10px] font-black uppercase tracking-widest text-gray-500">Status</th>
-                <th className="p-5 text-[10px] font-black uppercase tracking-widest text-gray-500">Date</th>
-                <th className="p-5 text-[10px] font-black uppercase tracking-widest text-gray-500 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-800/30">
-              {loading ? (
+      {/* 🔍 FILTER BAR (Consistent Design) */}
+      <div className={`p-4 rounded-2xl border flex flex-col md:flex-row gap-4 ${darkMode ? 'bg-[#0d0d0d] border-zinc-800' : 'bg-white border-gray-100 shadow-sm'}`}>
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+          <input 
+            type="text" 
+            placeholder="Search by Email, ID or Subject..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={`w-full pl-12 pr-4 py-3 rounded-xl text-xs font-bold outline-none border transition-all ${darkMode ? 'bg-black border-zinc-800 text-white focus:border-[#f99616]' : 'bg-gray-50 border-gray-100 text-black focus:border-[#f99616]'}`}
+          />
+        </div>
+        <div className="flex gap-2">
+          <select 
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className={`px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest outline-none border ${darkMode ? 'bg-black border-zinc-800 text-gray-400' : 'bg-gray-50 border-gray-100'}`}
+          >
+            <option value="all">All Tickets</option>
+            <option value="open">Active (Open)</option>
+            <option value="closed">Resolved (Closed)</option>
+          </select>
+        </div>
+      </div>
+
+      {filteredTickets.length === 0 ? (
+        <div className="p-20 text-center border-2 border-dashed border-zinc-800 rounded-none opacity-50">
+          <MessageSquare size={48} className="mx-auto mb-4 opacity-20" />
+          <p className="text-[10px] font-black uppercase tracking-[3px]">No communication logs found</p>
+        </div>
+      ) : (
+        <>
+          {/* 📱 MOBILE VIEW: COMPACT CARDS */}
+          <div className="grid grid-cols-1 gap-3 lg:hidden">
+            {currentItems.map((ticket) => (
+              <div key={ticket._id} className={`p-4 rounded-2xl border ${darkMode ? "bg-black border-zinc-800" : "bg-white border-gray-100 shadow-md"}`}>
+                <div className="flex justify-between items-center mb-3">
+                   <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-[#f99616]">#{ticket._id.slice(-6).toUpperCase()}</span>
+                      <span className={`text-[8px] font-black px-2 py-0.5 rounded uppercase ${ticket.status === 'open' ? 'text-green-500 bg-green-500/10' : 'text-gray-500 bg-gray-500/10'}`}>{ticket.status}</span>
+                   </div>
+                   <span className="text-[8px] font-bold text-gray-500">{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-zinc-900 rounded-lg"><UserIcon size={14} className="text-[#f99616]" /></div>
+                  <p className="text-[10px] font-bold truncate max-w-[200px]">{ticket.userId?.email}</p>
+                </div>
+                <div className="flex justify-between items-end border-t border-zinc-800/30 pt-3">
+                   <div className="flex-1">
+                      <p className="text-[11px] font-black uppercase italic truncate max-w-[180px]">{ticket.subject}</p>
+                      <p className="text-[9px] text-gray-500 font-bold uppercase">{ticket.category}</p>
+                   </div>
+                   <button className="p-2 bg-[#f99616] text-black rounded-lg active:scale-90 transition-transform">
+                      <ExternalLink size={14} />
+                   </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 💻 DESKTOP VIEW: SHARP BORDER TABLE */}
+          <div className={`hidden lg:block border ${darkMode ? 'border-zinc-800 bg-black' : 'border-gray-200 bg-white'} rounded-none overflow-hidden shadow-2xl`}>
+            <table className="w-full text-left">
+              <thead className={`${darkMode ? 'bg-zinc-900 text-gray-500' : 'bg-gray-50 text-gray-400'} border-b ${darkMode ? 'border-zinc-800' : 'border-gray-200'}`}>
                 <tr>
-                  <td colSpan="7" className="py-20 text-center">
-                    <Loader2 className="animate-spin text-[#f99616] mx-auto mb-2" size={30} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Accessing Records...</span>
-                  </td>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Ticket Identity</th>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Network User</th>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Classification</th>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Subject</th>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-center">Status</th>
+                  <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-center">Action</th>
                 </tr>
-              ) : filteredTickets.length > 0 ? (
-                filteredTickets.map((ticket) => (
-                  <tr key={ticket._id} className={`transition-colors ${darkMode ? 'hover:bg-white/5' : 'hover:bg-gray-50'}`}>
-                    <td className="p-5">
+              </thead>
+              <tbody className={`divide-y ${darkMode ? 'divide-zinc-900' : 'divide-gray-100'}`}>
+                {currentItems.map((ticket) => (
+                  <tr key={ticket._id} className="hover:bg-[#f99616]/5 transition-colors group">
+                    <td className="px-6 py-5">
                       <span className="text-xs font-black text-[#f99616]">#{ticket._id.slice(-6).toUpperCase()}</span>
                     </td>
-                    <td className="p-5">
-                      <div className="flex items-center gap-2">
-                         <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center text-[#f99616] text-[10px] font-black">
-                           {ticket.userId?.email?.charAt(0).toUpperCase()}
-                         </div>
-                         <span className="text-xs font-bold">{ticket.userId?.email}</span>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[#f99616] text-[10px] font-black">
+                          {ticket.userId?.email?.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-xs font-bold opacity-80">{ticket.userId?.email}</span>
                       </div>
                     </td>
-                    <td className="p-5">
-                      <span className="text-[10px] font-black uppercase text-gray-500 bg-gray-500/10 px-2 py-1 rounded">
+                    <td className="px-6 py-5 text-center">
+                      <span className="text-[9px] font-black uppercase text-gray-500 bg-gray-500/10 px-2 py-1 rounded border border-gray-500/20 italic">
                         {ticket.category}
                       </span>
                     </td>
-                    <td className="p-5">
-                      <p className="text-xs font-bold truncate max-w-[200px]">{ticket.subject}</p>
+                    <td className="px-6 py-5">
+                      <p className="text-xs font-bold truncate max-w-[200px] uppercase italic">{ticket.subject}</p>
                     </td>
-                    <td className="p-5">
+                    <td className="px-6 py-5 text-center">
                       <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                        ticket.status === 'open' ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500'
+                        ticket.status === 'open' ? 'text-green-500 bg-green-500/10 border border-green-500/20' : 'text-gray-500 bg-gray-500/10 border border-gray-500/20'
                       }`}>
                         {ticket.status === 'open' ? <AlertCircle size={10}/> : <CheckCircle size={10}/>}
                         {ticket.status}
                       </div>
                     </td>
-                    <td className="p-5">
-                      <span className="text-[10px] font-bold text-gray-500">
-                        {new Date(ticket.createdAt).toLocaleDateString()}
-                      </span>
-                    </td>
-                    <td className="p-5 text-right">
-                      <button className={`p-2 rounded-lg transition-all ${darkMode ? 'hover:bg-white/10 text-white' : 'hover:bg-gray-100 text-black'}`}>
+                    <td className="px-6 py-5 text-center">
+                      <button className={`p-2.5 rounded-xl border transition-all ${darkMode ? 'border-zinc-800 hover:bg-white/10 text-white' : 'border-gray-200 hover:bg-gray-100 text-black'}`}>
                         <ExternalLink size={16} />
                       </button>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="py-20 text-center opacity-30 text-xs font-black uppercase tracking-widest">
-                    No Support Data Found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 🔢 PAGINATION CONTROLS */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6">
+            <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">
+              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredTickets.length)} of {filteredTickets.length} Entries
+            </p>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} 
+                disabled={currentPage === 1} 
+                className={`p-2 border rounded-xl transition-all ${currentPage === 1 ? 'opacity-20 cursor-not-allowed' : 'text-[#f99616] hover:border-[#f99616]'}`}
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <div className="flex items-center px-4 font-black text-xs text-[#f99616]">
+                {currentPage} / {totalPages}
+              </div>
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} 
+                disabled={currentPage === totalPages} 
+                className={`p-2 border rounded-xl transition-all ${currentPage === totalPages ? 'opacity-20 cursor-not-allowed' : 'text-[#f99616] hover:border-[#f99616]'}`}
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

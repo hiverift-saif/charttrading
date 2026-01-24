@@ -55,6 +55,7 @@ import CopyTradingPage from "./Components/CopyTrading";
 import TelegramSupportPage from "./Components/TelegramSupportPage";
 import Forgetpass from "./Components/Forgetpass";
 import KYCPage from "./Components/KYCPage";
+import ResetPassword from "./Components/ResetPassword";
 
 // --- 🚀 1. GLOBAL AUTO-LOGOUT GUARD ---
 // Ye component har 10 second mein check karega ki koi token expire toh nahi hua
@@ -190,6 +191,7 @@ function MainLayout() {
               } />
 
               {/* Informational Routes */}
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/guides" element={<BeginnerGuides />} />
               <Route path="/tools" element={<TradingTools />} />
               <Route path="/learning-tools" element={<IntegratedLearningTools />} />

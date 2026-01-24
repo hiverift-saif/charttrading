@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux'; 
 import { useLocation, useNavigate } from 'react-router-dom';
-import { setAccountType, setKycStatus } from '../redux/tradingSlice'; // 🚀 Added setKycStatus
-import axios from 'axios';
-import API_CONFIG from '../config';
+import { setAccountType } from '../redux/tradingSlice'; 
 
 // COMPONENTS
 import SidebarLeft from '../chart/SidebarLeft';
@@ -18,7 +16,6 @@ import SupportPage from '../Leftsidebar/SupportPage';
 import TournamentModal from '../chart/TournamentModal'; 
 import ProfilePage from '../Leftsidebar/ProfilePage'; 
 import { Menu, X, LayoutDashboard } from 'lucide-react';
-import KYCPage from '../Components/KYCPage';
 
 const TradingDashboard = () => {
   const dispatch = useDispatch();
@@ -36,31 +33,7 @@ const TradingDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedT, setSelectedT] = useState(null);
 
-  // 🚀 1. KYC SYNC LOGIC: Backend se status fetch karke Redux mein save karega
-  const syncUserSecurityStatus = useCallback(async () => {
-    const token = localStorage.getItem('access_token');
-    if (!token) return;
-
-    try {
-      const response = await axios.get(`${API_CONFIG.baseURL}/kyc/status`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      // Maan lete hain backend se 'unverified', 'pending', ya 'verified' status aa raha hai
-      const statusFromBackend = response.data.result?.status || 'unverified';
-      dispatch(setKycStatus(statusFromBackend));
-    } catch (error) {
-      console.error("Critical: Security sync failed", error);
-    }
-  }, [dispatch]);
-
-  // Initial Sync on Mount
-  useEffect(() => {
-    syncUserSecurityStatus();
-    // Optional: Har 2 minute mein sync karein agar status 'pending' ho
-  }, [syncUserSecurityStatus]);
-
-  // 🚀 2. URL & TAB Persistence Update
+  // 🚀 1. URL & TAB Persistence Update
   useEffect(() => {
     localStorage.setItem('activeTradingTab', activeTab);
     navigate(`?tab=${activeTab}`, { replace: true });
@@ -130,7 +103,6 @@ const TradingDashboard = () => {
                 )}
                 {activeTab === 'profile' && <ProfilePage setActiveTab={setActiveTab} />}
                 {activeTab === 'support' && <SupportPage setActiveTab={setActiveTab} />}
-                {activeTab === 'kyc' && <KYCPage />} {/* 🚀 New KYC Component */}
               </div>
             )}
           </main>

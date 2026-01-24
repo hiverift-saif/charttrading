@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Check, X, Download, Loader2, AlertCircle } from 'lucide-react';
+import { Check, X, Download, Loader2, AlertCircle, Search, Filter, User as UserIcon } from 'lucide-react';
 import API_CONFIG from '../config';
 import Swal from 'sweetalert2';
 import { useTheme } from "../context/ThemeContext";
@@ -8,11 +8,30 @@ import { useTheme } from "../context/ThemeContext";
 const AdminFinance = () => {
   const { darkMode } = useTheme();
   const [deposits, setDeposits] = useState([]);
+  const [filteredDeposits, setFilteredDeposits] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [methodFilter, setMethodFilter] = useState("all");
 
   useEffect(() => {
     fetchDeposits();
   }, []);
+
+  // 🔍 Filter Logic (Same as original)
+  useEffect(() => {
+    let result = deposits;
+    if (searchQuery) {
+      result = result.filter(d => 
+        d.userId?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        d.transactionId?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    if (methodFilter !== "all") {
+      result = result.filter(d => d.method.toLowerCase() === methodFilter.toLowerCase());
+    }
+    setFilteredDeposits(result);
+  }, [searchQuery, methodFilter, deposits]);
 
   const fetchDeposits = async () => {
     try {
@@ -21,12 +40,10 @@ const AdminFinance = () => {
       const response = await axios.get(`${API_CONFIG.baseURL}/admin/deposits`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
-      // Sirf pending deposits filter kar rahe hain
       const allData = response.data?.result || response.data || [];
       const pendingOnly = allData.filter(d => d.status === 'pending');
       setDeposits(pendingOnly);
-      
+      setFilteredDeposits(pendingOnly);
     } catch (err) {
       setDeposits([]);
     } finally {
@@ -34,154 +51,134 @@ const AdminFinance = () => {
     }
   };
 
-const handleStatusUpdate = async (id, action) => {
-  // 1. Pehle Confirmation Pucho
-  const result = await Swal.fire({
-    title: `Confirm ${action === 'approve' ? 'Approval' : 'Rejection'}?`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: action === 'approve' ? '#10b981' : '#ef4444',
-    cancelButtonColor: '#1a1a1a',
-    confirmButtonText: `Yes, ${action} it!`,
-    background: darkMode ? '#0d0d0d' : '#fff',
-    color: darkMode ? '#fff' : '#000'
-  });
-
-  if (result.isConfirmed) {
-    // 🚀 2. Yahan Loading start karo
-    Swal.fire({
-      title: 'Updating Balance...',
-      html: 'Processing transaction on secure node.',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading(); // Ye loading start karega
-      },
+  const handleStatusUpdate = async (id, action) => {
+    const result = await Swal.fire({
+      title: `Confirm ${action}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: action === 'approve' ? '#10b981' : '#ef4444',
       background: darkMode ? '#0d0d0d' : '#fff',
       color: darkMode ? '#fff' : '#000'
     });
 
-    try {
-      const token = localStorage.getItem("admin_token");
-      const response = await axios.put(
-        `${API_CONFIG.baseURL}/admin/deposit/${id}/${action}`, 
-        {}, 
-        { headers: { Authorization: `Bearer ${token}` }}
-      );
-
-      // 🚀 3. SUCCESS: Jaise hi response aaye, LOADER HATAO
-      // Swal.fire ka naya call purane loader ko automatic replace kar dega
-      await Swal.fire({
-        icon: 'success',
-        title: 'Action Executed!',
-        text: `The deposit has been ${action}d successfully.`,
-        timer: 1500, // 1.5 sec baad khud gayab ho jayega
-        showConfirmButton: false,
-        background: darkMode ? '#0d0d0d' : '#fff',
-        color: darkMode ? '#fff' : '#000'
-      });
-
-      // 🚀 4. List refresh karo taki wo row gayab ho jaye
-      fetchDeposits();
-
-    } catch (err) {
-      // 🚀 5. ERROR: Agar fail ho jaye, tab bhi loader hata kar error dikhao
-      Swal.fire({
-        icon: 'error',
-        title: 'Update Failed',
-        text: err.response?.data?.message || 'Error processing transaction.',
-        background: darkMode ? '#0d0d0d' : '#fff',
-        color: darkMode ? '#fff' : '#000',
-        confirmButtonColor: '#f99616'
-      });
+    if (result.isConfirmed) {
+      Swal.fire({ title: 'Processing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      try {
+        const token = localStorage.getItem("admin_token");
+        await axios.put(`${API_CONFIG.baseURL}/admin/deposit/${id}/${action}`, {}, { headers: { Authorization: `Bearer ${token}` }});
+        Swal.fire({ icon: 'success', title: 'Action Success', timer: 1000, showConfirmButton: false });
+        fetchDeposits();
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Failed', text: 'Update error' });
+      }
     }
-  }
-};
+  };
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] w-full">
-        <Loader2 className="w-12 h-12 animate-spin text-[#f99616] mb-4" />
-        <p className={`${darkMode ? 'text-gray-500' : 'text-slate-400'} font-black uppercase tracking-[4px] text-[10px]`}>Scanning Pending Requests...</p>
+      <div className="flex justify-center items-center h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-[#f99616]" />
       </div>
     );
   }
 
   return (
-    <div className={`space-y-8 animate-in fade-in duration-700 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+    <div className={`space-y-6 ${darkMode ? 'text-white' : 'text-slate-900'}`}>
       
-      <div className="flex justify-between items-end">
-        <div>
-          <h2 className="text-2xl font-black uppercase italic tracking-tighter">
-            Pending <span className="text-[#f99616]">Deposits</span>
-          </h2>
-          <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${darkMode ? 'text-gray-500' : 'text-slate-400'}`}>
-            Awaiting Administrative Approval
-          </p>
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-black uppercase italic tracking-tighter">
+          Pending <span className="text-[#f99616]">Deposits</span>
+        </h2>
+        <span className="text-xs font-black bg-[#f99616]/10 text-[#f99616] px-4 py-1.5 rounded-xl border border-[#f99616]/20">
+          {filteredDeposits.length} Requests
+        </span>
+      </div>
+
+      {/* 🚀 ORIGINAL FILTER DESIGN (NO CHANGE) */}
+      <div className={`p-4 rounded-2xl border flex flex-col md:flex-row gap-4 ${darkMode ? 'bg-[#0d0d0d] border-gray-800' : 'bg-white border-gray-100 shadow-sm'}`}>
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+          <input 
+            type="text"
+            placeholder="Search by UID or Transaction ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={`w-full pl-12 pr-4 py-3 rounded-xl text-xs font-bold outline-none border transition-all ${darkMode ? 'bg-black border-gray-800 focus:border-[#f99616]' : 'bg-gray-50 border-gray-100 focus:border-[#f99616]'}`}
+          />
         </div>
-        <div className={`${darkMode ? 'bg-orange-500/10' : 'bg-orange-50'} border border-[#f99616]/20 px-4 py-2 rounded-xl`}>
-           <p className="text-[#f99616] font-black text-xs uppercase">{deposits.length} Requests</p>
+        <div className="flex gap-2">
+          <select 
+            value={methodFilter}
+            onChange={(e) => setMethodFilter(e.target.value)}
+            className={`px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest outline-none border ${darkMode ? 'bg-black border-gray-800' : 'bg-gray-50 border-gray-100'}`}
+          >
+            <option value="all">All Methods</option>
+            <option value="crypto">Crypto</option>
+            <option value="upi">UPI</option>
+          </select>
         </div>
       </div>
 
-      {deposits.length === 0 ? (
-        <div className={`${darkMode ? 'bg-[#0d0d0d] border-gray-800' : 'bg-white border-slate-200 shadow-sm'} border rounded-3xl p-24 text-center transition-all`}>
-          <AlertCircle size={56} className={`${darkMode ? 'text-gray-800' : 'text-slate-200'} mx-auto mb-4`} />
-          <h3 className={`font-black uppercase italic text-lg mb-1 tracking-tight ${darkMode ? 'text-white' : 'text-slate-800'}`}>Queue Clear</h3>
-          <p className={`${darkMode ? 'text-gray-600' : 'text-slate-400'} font-bold uppercase text-[10px] tracking-widest`}>No pending transactions to show</p>
+      {filteredDeposits.length === 0 ? (
+        <div className="p-10 text-center border-2 border-dashed border-gray-800 rounded-3xl opacity-50">
+          <p className="text-[10px] font-black uppercase">No pending transactions</p>
         </div>
       ) : (
-        <div className={`${darkMode ? 'bg-[#0d0d0d] border-gray-800' : 'bg-white border-slate-200'} border rounded-3xl overflow-hidden shadow-2xl transition-all`}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className={`${darkMode ? 'bg-black/50 border-gray-800' : 'bg-slate-50 border-slate-100'} border-b`}>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Transaction / User</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Method</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Value</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Decision</th>
+        <>
+          {/* 📱 COMPACT MOBILE CARDS */}
+          <div className="grid grid-cols-1 gap-3 lg:hidden">
+            {filteredDeposits.map((item) => (
+              <div key={item._id} className={`p-4 rounded-2xl border ${darkMode ? 'bg-[#0d0d0d] border-gray-800' : 'bg-white border-gray-100 shadow-sm'}`}>
+                <div className="flex justify-between items-center mb-3">
+                   <div className="flex items-center gap-2 text-[#f99616]">
+                      <Download size={14}/>
+                      <span className="text-[10px] font-black">UID: {item.userId?.slice(-10)}</span>
+                   </div>
+                   <span className="text-[9px] font-bold opacity-50 uppercase tracking-widest">{item.method}</span>
+                </div>
+                <div className="flex justify-between items-end">
+                   <div>
+                      <p className="text-[14px] font-black italic text-white">${item.amount}</p>
+                      <p className="text-[8px] font-bold opacity-30 truncate max-w-[150px]">TX: {item.transactionId || 'N/A'}</p>
+                   </div>
+                   <div className="flex gap-2">
+                      <button onClick={() => handleStatusUpdate(item._id, 'approve')} className="p-2.5 bg-green-600 text-white rounded-xl active:scale-90 transition-transform"><Check size={16}/></button>
+                      <button onClick={() => handleStatusUpdate(item._id, 'reject')} className="p-2.5 bg-red-600 text-white rounded-xl active:scale-90 transition-transform"><X size={16}/></button>
+                   </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 💻 SHARP DESKTOP TABLE (No rounded borders on container) */}
+          <div className={`hidden lg:block border ${darkMode ? 'border-zinc-800 bg-black' : 'border-gray-200 bg-white'} rounded-none overflow-hidden`}>
+            <table className="w-full text-left">
+              <thead className={`${darkMode ? 'bg-zinc-900 text-gray-500' : 'bg-gray-50 text-gray-400'} border-b ${darkMode ? 'border-zinc-800' : 'border-gray-200'}`}>
+                <tr>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest">User/Network</th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Protocol</th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Equity Value</th>
+                  <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-center">Authorization</th>
                 </tr>
               </thead>
-              <tbody className={`divide-y ${darkMode ? 'divide-gray-900' : 'divide-slate-50'}`}>
-                {deposits.map((item) => (
-                  <tr key={item._id} className={`transition-colors group ${darkMode ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50/50'}`}>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-xl border flex items-center justify-center text-orange-500 bg-orange-500/10 border-orange-500/20 shadow-inner`}>
-                          <Download size={18} />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className={`font-bold text-xs ${darkMode ? 'text-white' : 'text-slate-900'}`}>UID: {item.userId?.slice(-8)}</span>
-                          <span className={`text-[9px] font-bold uppercase tracking-tighter ${darkMode ? 'text-gray-600' : 'text-slate-400'}`}>
-                            TXID: {item.transactionId?.slice(-12) || 'N/A'}
-                          </span>
-                        </div>
-                      </div>
+              <tbody className={`divide-y ${darkMode ? 'divide-zinc-900' : 'divide-gray-100'}`}>
+                {filteredDeposits.map((item) => (
+                  <tr key={item._id} className="hover:bg-[#f99616]/5 transition-colors">
+                    <td className="px-8 py-5">
+                      <p className="font-black text-xs uppercase italic">UID: {item.userId}</p>
+                      <p className="text-[9px] font-bold text-gray-500 uppercase tracking-tighter">TX: {item.transactionId || 'N/A'}</p>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest ${darkMode ? 'bg-black border-gray-800 text-gray-400' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
-                        {item.method}
-                      </span>
+                    <td className="px-8 py-5 text-center">
+                      <span className={`px-4 py-1 rounded text-[9px] font-black uppercase ${darkMode ? 'bg-zinc-900 text-zinc-400 border border-zinc-800' : 'bg-slate-100 text-slate-500'}`}>{item.method}</span>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <p className={`font-black text-sm tracking-tighter ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                        ${item.amount?.toLocaleString()}
-                      </p>
-                      <span className="text-[8px] font-black uppercase text-orange-500 tracking-widest">Awaiting Approval</span>
+                    <td className="px-8 py-5 text-center font-black text-sm text-[#f99616]">
+                      ${item.amount?.toLocaleString()}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-2">
-                        <button 
-                          onClick={() => handleStatusUpdate(item._id, 'approve')}
-                          className="p-2 bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl hover:bg-green-500 hover:text-white transition-all shadow-lg"
-                        >
-                          <Check size={16} strokeWidth={3} />
-                        </button>
-                        <button 
-                          onClick={() => handleStatusUpdate(item._id, 'reject')}
-                          className="p-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-lg"
-                        >
-                          <X size={16} strokeWidth={3} />
-                        </button>
+                    <td className="px-8 py-5">
+                      <div className="flex items-center justify-center gap-3">
+                        <button onClick={() => handleStatusUpdate(item._id, 'approve')} className="p-2 border border-green-500/30 text-green-500 hover:bg-green-500 hover:text-white transition-all"><Check size={18} /></button>
+                        <button onClick={() => handleStatusUpdate(item._id, 'reject')} className="p-2 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white transition-all"><X size={18} /></button>
                       </div>
                     </td>
                   </tr>
@@ -189,7 +186,7 @@ const handleStatusUpdate = async (id, action) => {
               </tbody>
             </table>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

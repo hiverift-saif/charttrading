@@ -1,294 +1,216 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import {
-  Loader2,
-  Eye,
-  Trash2,
-  Pencil,
-  X,
-  User as UserIcon,
-  Shield,
-  Wallet
+import { 
+  Loader2, Eye, X, MailCheck, MailWarning, 
+  ShieldCheck, ShieldAlert, ChevronLeft, ChevronRight, 
+  Search, Globe, Phone, Wallet, Activity, User as UserIcon
 } from "lucide-react";
-import Swal from "sweetalert2";
 import API_CONFIG from "../config";
 import { useTheme } from "../context/ThemeContext";
 
-const AdminUserManagement = () => {
+const AdminUserManagement = ({ filterType }) => {
   const { darkMode } = useTheme();
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [selectedUser, setSelectedUser] = useState(null);
-  const [editUser, setEditUser] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    fetchUsers(pagination.page, filterType);
+    setSearchQuery(""); 
+  }, [pagination.page, filterType]);
 
-  const fetchUsers = async () => {
+  useEffect(() => {
+    const result = users.filter(u => 
+      u.email?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      u._id?.includes(searchQuery)
+    );
+    setFilteredUsers(result);
+  }, [searchQuery, users]);
+
+  const fetchUsers = async (page, filter) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("admin_token");
-      const res = await axios.get(`${API_CONFIG.baseURL}/admin/users`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUsers(res.data?.result || []);
-    } catch {
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
+      const backendFilter = filter ? filter.replace('users_', '') : 'all';
+      let url = `${API_CONFIG.baseURL}/user?page=${page}&limit=10`;
+      if (backendFilter !== 'all') url += `&filter=${backendFilter}`;
+
+      const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
+      const data = res.data.data || [];
+      setUsers(data);
+      setFilteredUsers(data);
+      setPagination({ page: res.data.page, totalPages: res.data.totalPages, total: res.data.total });
+    } catch (err) { setUsers([]); } finally { setLoading(false); }
   };
 
-  const handleDelete = async (userId) => {
-    const confirm = await Swal.fire({
-      title: "Delete User?",
-      text: "This action cannot be undone",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#ef4444",
-      background: darkMode ? "#000" : "#fff",
-      color: darkMode ? "#fff" : "#000",
-    });
-
-    if (!confirm.isConfirmed) return;
-
+  const fetchSingleUser = async (id) => {
     try {
+      setDetailsLoading(true);
       const token = localStorage.getItem("admin_token");
-      await axios.delete(`${API_CONFIG.baseURL}/admin/users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      Swal.fire({
-        title: "Deleted",
-        icon: "success",
-        background: darkMode ? "#000" : "#fff",
-        color: darkMode ? "#fff" : "#000",
-      });
-      fetchUsers();
-    } catch {
-      Swal.fire({
-        title: "Error",
-        icon: "error",
-        background: darkMode ? "#000" : "#fff",
-        color: darkMode ? "#fff" : "#000",
-      });
-    }
+      const res = await axios.get(`${API_CONFIG.baseURL}/user/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      setSelectedUser(res.data);
+    } catch (err) { console.error(err); } finally { setDetailsLoading(false); }
   };
 
-  const handleUpdate = async () => {
-    try {
-      const token = localStorage.getItem("admin_token");
-      await axios.put(
-        `${API_CONFIG.baseURL}/admin/users/${editUser._id}`,
-        { role: editUser.role },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      Swal.fire({
-        title: "Updated",
-        icon: "success",
-        background: darkMode ? "#000" : "#fff",
-        color: darkMode ? "#fff" : "#000",
-      });
-      setEditUser(null);
-      fetchUsers();
-    } catch {
-      Swal.fire({
-        title: "Error",
-        icon: "error",
-        background: darkMode ? "#000" : "#fff",
-        color: darkMode ? "#fff" : "#000",
-      });
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <Loader2 className="animate-spin text-[#f99616]" size={40} />
-      </div>
-    );
-  }
+  if (loading && pagination.page === 1) return <div className="h-96 flex justify-center items-center"><Loader2 className="animate-spin text-[#f99616]" size={40} /></div>;
 
   return (
-    <>
-      <div className={`space-y-6 ${darkMode ? "text-white" : "text-black"}`}>
-        <h2 className="text-xl font-black uppercase italic">
-          User <span className="text-[#f99616]">Management</span>
-        </h2>
-
-        {/* 📱 MOBILE VIEW (Center Optimized) */}
-        <div className="grid grid-cols-1 gap-4 lg:hidden">
-          {users.map((u) => (
-            <div 
-              key={u._id} 
-              className={`p-5 rounded-[2rem] border transition-colors ${darkMode ? "bg-black border-zinc-800 text-white" : "bg-white border-gray-100 text-black shadow-sm"}`}
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-[#f99616]/10 rounded-xl">
-                    <UserIcon size={20} className="text-[#f99616]" />
-                  </div>
-                  <div>
-                    <p className="font-black text-sm truncate max-w-[150px] uppercase italic">{u.name || u.email.split('@')[0]}</p>
-                    <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">ID: {u._id.slice(-6)}</p>
-                  </div>
-                </div>
-                <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest ${u.role === 'admin' ? 'bg-purple-500/10 text-purple-500' : 'bg-[#f99616]/10 text-[#f99616]'}`}>
-                  {u.role}
-                </span>
-              </div>
-
-              <div className="flex gap-2 border-t pt-4 border-gray-800/30">
-                <button 
-                  onClick={() => setSelectedUser(u)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 border rounded-xl text-[10px] font-black uppercase tracking-widest ${darkMode ? "border-zinc-800 text-white" : "border-gray-200 text-black"}`}
-                >
-                  <Eye size={14} /> View
-                </button>
-                <button 
-                  onClick={() => setEditUser({ ...u })}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 border rounded-xl text-[10px] font-black uppercase tracking-widest ${darkMode ? "border-zinc-800 text-[#f99616]" : "border-gray-200 text-[#f99616]"}`}
-                >
-                  <Pencil size={14} /> Edit
-                </button>
-                <button 
-                  onClick={() => handleDelete(u._id)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 border rounded-xl text-[10px] font-black uppercase tracking-widest ${darkMode ? "border-zinc-800 text-red-500" : "border-gray-200 text-red-500"}`}
-                >
-                  <Trash2 size={14} /> Del
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 💻 DESKTOP VIEW */}
-        <div className="hidden lg:block border rounded-[2rem] overflow-hidden shadow-2xl">
-          <table className="w-full text-left">
-            <thead className={`${darkMode ? "bg-zinc-900" : "bg-gray-50 text-gray-500"}`}>
-              <tr>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[2px]">User Terminal</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[2px]">Account Role</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[2px] text-center">Protocol Actions</th>
-              </tr>
-            </thead>
-            <tbody className={`${darkMode ? "bg-black" : "bg-white"}`}>
-              {users.map((u) => (
-                <tr key={u._id} className={`border-t transition-colors ${darkMode ? "border-zinc-900 hover:bg-zinc-900/50" : "border-gray-50 hover:bg-gray-50"}`}>
-                  <td className="px-6 py-4">
-                    <p className={`font-black text-sm uppercase italic ${darkMode ? "text-white" : "text-black"}`}>{u.email}</p>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">KYC: {u.kycStatus}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${u.role === 'admin' ? 'bg-purple-500/10 text-purple-500' : 'bg-[#f99616]/10 text-[#f99616]'}`}>
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center gap-3">
-                      <button onClick={() => setSelectedUser(u)} className={`p-2 border rounded-xl hover:bg-blue-500 hover:text-white transition-all ${darkMode ? "border-zinc-800 text-blue-500" : "border-gray-200 text-blue-500"}`}><Eye size={16} /></button>
-                      <button onClick={() => setEditUser({ ...u })} className={`p-2 border rounded-xl hover:bg-orange-500 hover:text-white transition-all ${darkMode ? "border-zinc-800 text-orange-500" : "border-gray-200 text-orange-500"}`}><Pencil size={16} /></button>
-                      <button onClick={() => handleDelete(u._id)} className={`p-2 border rounded-xl hover:bg-red-500 hover:text-white transition-all ${darkMode ? "border-zinc-800 text-red-500" : "border-gray-200 text-red-500"}`}><Trash2 size={16} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* 🚀 CENTERED MODAL FOR MOBILE & DESKTOP */}
-      {selectedUser && (
-        <Modal title="Analytics Terminal" onClose={() => setSelectedUser(null)} darkMode={darkMode}>
-          <div className="space-y-4">
-            <div className={`p-5 rounded-2xl flex items-center gap-4 border ${darkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-gray-50 border-gray-100"}`}>
-               <Wallet className="text-[#f99616]" />
-               <div>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Current Balance</p>
-                  <p className={`text-xl font-black italic ${darkMode ? "text-white" : "text-black"}`}>${selectedUser.realBalance?.toLocaleString() || 0}</p>
-               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-               <Detail label="KYC STATUS" value={selectedUser.kycStatus} darkMode={darkMode} />
-               <Detail label="COMMISSION" value={`${selectedUser.commissionRate}%`} darkMode={darkMode} />
-            </div>
-            <Detail label="USER EMAIL" value={selectedUser.email} darkMode={darkMode} />
-            <p className="text-[8px] text-gray-500 break-all font-mono bg-black/40 p-2 rounded uppercase tracking-widest">Network ID: {selectedUser._id}</p>
-          </div>
-        </Modal>
-      )}
-
- {/* ✏️ EDIT MODAL (Mobile Theme & Alignment Fixed) */}
-{editUser && (
-  <Modal title="Permission Control" onClose={() => setEditUser(null)} darkMode={darkMode}>
     <div className="space-y-6">
-      <div>
-        <label className={`text-[10px] font-black uppercase mb-3 block tracking-[2px] ${darkMode ? "text-gray-500" : "text-gray-400"}`}>
-          Assign Role Authority
-        </label>
-        
-        {/* 🚀 FIXED: Dynamic Dropdown for Mobile */}
-        <div className="relative group">
-          <select
-            value={editUser.role}
-            onChange={(e) => setEditUser({ ...editUser, role: e.target.value })}
-            className={`w-full p-5 rounded-2xl border font-black uppercase text-xs outline-none transition-all appearance-none cursor-pointer
-              ${darkMode 
-                ? "bg-black border-zinc-800 text-white focus:border-[#f99616]" 
-                : "bg-gray-50 border-gray-200 text-black focus:border-[#f99616]"
-              }`}
-          >
-            {/* 💡 Note: Manual classes for mobile dropdown background */}
-            <option value="user" className={`${darkMode ? "bg-black text-white" : "bg-white text-black"}`}>
-              Standard Trader
-            </option>
-            <option value="admin" className={`${darkMode ? "bg-black text-white" : "bg-white text-black"}`}>
-              System Admin
-            </option>
-          </select>
-          
-          {/* Custom Arrow taaki appearance-none ke baad bhi icon dikhe */}
-          <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
-            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M1 1L5 5L9 1" />
-            </svg>
-          </div>
+      {/* 🔍 HEADER & SEARCH */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-xl font-black uppercase italic tracking-tighter">
+            Protocol: <span className="text-[#f99616]">{filterType ? filterType.replace('users_', '').replace('_', ' ') : 'Global Fleet'}</span>
+          </h2>
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest italic">{pagination.total} Entities Found</p>
+        </div>
+
+        <div className={`p-2 rounded-2xl border flex items-center gap-2 w-full md:w-80 ${darkMode ? 'bg-[#0d0d0d] border-zinc-800' : 'bg-white border-gray-100 shadow-sm'}`}>
+          <Search className="ml-3 text-gray-500" size={16} />
+          <input 
+            type="text" 
+            placeholder="Search email or UID..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={`w-full p-2.5 text-xs font-bold outline-none bg-transparent ${darkMode ? 'text-white' : 'text-black'}`}
+          />
         </div>
       </div>
 
-      <button 
-        onClick={handleUpdate} 
-        disabled={loading}
-        className="w-full h-14 bg-[#f99616] text-black font-black uppercase tracking-[2px] rounded-2xl shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
-      >
-        {loading ? <Loader2 className="animate-spin" size={18} /> : "Update Authority"}
-      </button>
+      {/* 📱 MOBILE VIEW: DATA CARDS */}
+      <div className="grid grid-cols-1 gap-4 lg:hidden">
+        {filteredUsers.map((u) => (
+          <div key={u._id} className={`p-5 rounded-[2rem] border transition-all ${darkMode ? "bg-black border-zinc-800" : "bg-white border-gray-100 shadow-xl"}`}>
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  {/* <img src={u.avatarPath || "/default.png"} className="w-12 h-12 rounded-2xl border border-zinc-800" /> */}
+                  <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center ${darkMode ? "bg-zinc-900 border-zinc-800" : "bg-gray-100 border-gray-200"}`}>
+  <UserIcon size={24} className="text-[#f99616]" />
+</div>
+                  <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-black ${u.accountBlocked ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                </div>
+                <div>
+                  <p className="font-black text-xs uppercase italic truncate max-w-[150px]">{u.email.split('@')[0]}</p>
+                  <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">{u.email}</p>
+                </div>
+              </div>
+              <button onClick={() => fetchSingleUser(u._id)} className="p-3 bg-[#f99616]/10 rounded-2xl text-[#f99616]"><Eye size={18} /></button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 border-t border-zinc-900 pt-4">
+              <div className="p-3 bg-zinc-900/40 rounded-2xl border border-zinc-800/50">
+                 <p className="text-[8px] font-bold text-gray-500 uppercase mb-1">Equity</p>
+                 <p className="text-xs font-black text-[#f99616]">${u.realBalance?.toLocaleString()}</p>
+              </div>
+              <div className="p-3 bg-zinc-900/40 rounded-2xl border border-zinc-800/50">
+                 <p className="text-[8px] font-bold text-gray-500 uppercase mb-1">KYC Status</p>
+                 <p className={`text-[9px] font-black uppercase ${u.kycStatus === 'approved' ? 'text-green-500' : 'text-orange-500'}`}>{u.kycStatus}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 💻 DESKTOP VIEW: SHARP TABLE */}
+      <div className={`hidden lg:block border rounded-none overflow-hidden ${darkMode ? 'border-zinc-800 bg-black' : 'border-gray-200 bg-white shadow-2xl'}`}>
+        <table className="w-full text-left">
+          <thead className={`text-[10px] font-black uppercase text-gray-500 border-b border-zinc-800 ${darkMode ? 'bg-zinc-900/50' : 'bg-gray-50'}`}>
+            <tr>
+              <th className="px-8 py-4">Identity</th>
+              <th className="px-8 py-4 text-center">Protocol</th>
+              <th className="px-8 py-4 text-center">Real Equity</th>
+              <th className="px-8 py-4 text-center">KYC Status</th>
+              <th className="px-8 py-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zinc-900">
+            {filteredUsers.map(u => (
+              <tr key={u._id} className="hover:bg-[#f99616]/5 transition-colors">
+                <td className="px-8 py-5">
+                   <div className="flex items-center gap-3">
+                      <div className="relative">
+                         {/* <img src={u.avatarPath || "/default.png"} className="w-8 h-8 rounded-lg border border-zinc-800" /> */}
+                         <div className={`w-9 h-9 rounded-lg border flex items-center justify-center ${darkMode ? "bg-zinc-900 border-zinc-800" : "bg-gray-100 border-gray-200"}`}>
+  <UserIcon size={18} className="text-[#f99616]" />
+</div>
+                         <div className={`absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-black ${u.accountBlocked ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                      </div>
+                      <p className="text-xs font-black italic uppercase">{u.email}</p>
+                   </div>
+                </td>
+                <td className="px-8 py-5 text-center uppercase font-black text-[10px] opacity-60">{u.role}</td>
+                <td className="px-8 py-5 text-center font-black text-[#f99616] italic text-xs">${u.realBalance?.toLocaleString()}</td>
+                <td className="px-8 py-5 text-center">
+                   <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase ${u.kycStatus === 'approved' ? 'text-green-500 bg-green-500/10' : 'text-orange-500 bg-orange-500/10'}`}>
+                      {u.kycStatus}
+                   </div>
+                </td>
+                <td className="px-8 py-5 text-right">
+                   <button onClick={() => fetchSingleUser(u._id)} className="p-2 border border-zinc-800 rounded-xl hover:text-[#f99616] transition-all"><Eye size={16}/></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 🔢 PAGINATION */}
+      <div className="flex justify-between items-center p-4 bg-zinc-900/10 border border-zinc-800 text-[10px] font-black uppercase tracking-widest text-gray-500">
+         <span>Fleet Page {pagination.page} / {pagination.totalPages}</span>
+         <div className="flex gap-2">
+            <button disabled={pagination.page === 1} onClick={() => setPagination(p => ({...p, page: p.page - 1}))} className="p-2 border border-zinc-800 rounded-xl disabled:opacity-20 hover:border-[#f99616] transition-colors"><ChevronLeft size={16}/></button>
+            <button disabled={pagination.page === pagination.totalPages} onClick={() => setPagination(p => ({...p, page: p.page + 1}))} className="p-2 border border-zinc-800 rounded-xl disabled:opacity-20 hover:border-[#f99616] transition-colors"><ChevronRight size={16}/></button>
+         </div>
+      </div>
+
+      {/* 🚀 OPERATIONAL MODAL */}
+      {selectedUser && (
+        <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+           <div className={`w-full max-w-2xl border border-zinc-800 bg-black p-6 md:p-8 rounded-none animate-in zoom-in-95 duration-300 overflow-y-auto max-h-[90vh]`}>
+              <div className="flex justify-between items-center mb-8 border-b border-zinc-800 pb-4">
+                 <h3 className="font-black uppercase italic text-xl text-[#f99616] flex items-center gap-3">
+                    <Activity size={20}/> Operational Analytics
+                 </h3>
+                 <button onClick={() => setSelectedUser(null)} className="p-2 hover:bg-red-500 rounded-lg transition-colors"><X size={20}/></button>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                 <StatBox label="Total Trades" value={selectedUser.totalTrades || 0} />
+                 <StatBox label="Active Orders" value={selectedUser.totalOrders || 0} />
+                 <StatBox label="Real Equity" value={`$${selectedUser.realBalance}`} color="#f99616" />
+                 <StatBox label="Wallet Bal" value={`$${selectedUser.walletBalance}`} color="#f99616" />
+              </div>
+
+              <div className="space-y-3">
+                 <InfoRow label="Email Identity" value={selectedUser.email} />
+                 <InfoRow label="Contact Node" value={selectedUser.phone || 'N/A'} />
+                 <InfoRow label="Tier Protocol" value={selectedUser.tier} />
+                 <InfoRow label="Region" value={selectedUser.country} />
+              </div>
+           </div>
+        </div>
+      )}
     </div>
-  </Modal>
-)}
-    </>
   );
 };
 
-/* 🔹 CENTERED MODAL COMPONENT */
-const Modal = ({ title, children, onClose, darkMode }) => (
-  <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
-    <div className={`rounded-[2.5rem] p-8 w-full max-w-md relative animate-in zoom-in-95 duration-300 border ${darkMode ? "bg-black border-zinc-800 shadow-[0_0_50px_rgba(0,0,0,1)]" : "bg-white border-gray-200 shadow-2xl"}`}>
-      <button onClick={onClose} className={`absolute top-6 right-6 transition-colors ${darkMode ? "text-gray-600 hover:text-red-500" : "text-gray-400 hover:text-red-500"}`}><X size={24} /></button>
-      <div className="flex items-center gap-2 mb-8">
-         <div className="w-1.5 h-6 bg-[#f99616] rounded-full"></div>
-         <h3 className={`font-black uppercase italic text-xl ${darkMode ? "text-white" : "text-black"}`}>{title}</h3>
-      </div>
-      {children}
-    </div>
+const StatBox = ({ label, value, color }) => (
+  <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl text-center">
+    <p className="text-[8px] font-black text-gray-500 uppercase mb-1">{label}</p>
+    <p className="text-lg font-black italic" style={{ color: color || 'white' }}>{value}</p>
   </div>
 );
 
-const Detail = ({ label, value, darkMode }) => (
-  <div className={`p-3 rounded-2xl border ${darkMode ? "border-zinc-800 bg-zinc-900/20" : "border-gray-100 bg-gray-50"}`}>
-    <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{label}</p>
-    <p className={`font-black text-xs uppercase truncate ${darkMode ? "text-white" : "text-black"}`}>{value}</p>
+const InfoRow = ({ label, value }) => (
+  <div className="flex justify-between items-center p-3 border-b border-zinc-900/50">
+     <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{label}</span>
+     <span className="text-[10px] font-black uppercase text-white italic text-right truncate max-w-[60%]">{value}</span>
   </div>
 );
 

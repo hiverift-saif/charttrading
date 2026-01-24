@@ -30,8 +30,10 @@ const AdminTradeHistory = () => {
       const token = localStorage.getItem("admin_token");
       // 🚀 Using your provided URL and parameter
       const res = await axios.get(`${API_CONFIG.baseURL}/trade/history?mode=${filterMode}`, {
+   
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log("Trade History Response:", res.data);
       setTrades(res.data?.result || []);
     } catch (err) {
       console.error("Trade History Error:", err);
@@ -40,7 +42,6 @@ const AdminTradeHistory = () => {
       setLoading(false);
     }
   };
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh]">
