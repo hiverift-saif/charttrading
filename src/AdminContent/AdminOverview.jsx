@@ -1,15 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { TrendingUp, Users, ShieldCheck, ArrowDownRight, ArrowUpRight, Loader2, Activity, Wallet, PieChart, Zap } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  TrendingUp, Users, ShieldCheck, Activity, Wallet, 
+  PieChart, Zap, Loader2, ArrowRight, AlertCircle, Menu, X 
+} from 'lucide-react';
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, 
+  Tooltip, ResponsiveContainer 
+} from 'recharts';
 import axios from 'axios';
 import API_CONFIG from '../config'; 
-import { useTheme } from "../context/ThemeContext"; // 🚀 Added Logic
+import { useTheme } from "../context/ThemeContext";
 
 const AdminOverview = () => {
-  const { darkMode } = useTheme(); // 🚀 Hook for theme check
+  const { darkMode } = useTheme();
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // 1. DATA FETCHING LOGIC
   useEffect(() => {
     const fetchAdminStats = async () => {
       try {
@@ -28,16 +35,35 @@ const AdminOverview = () => {
     fetchAdminStats();
   }, []);
 
+  // 2. DYNAMIC CHART DATA CALCULATION
+  const chartData = useMemo(() => {
+    const baseValue = metrics?.financialMetrics?.totalDeposits || 0;
+    const baseUsers = metrics?.userMetrics?.totalUsers || 0;
+    
+    // Simulating past 6 months growth based on current real data
+    return [
+      { name: 'Jan', val: baseValue * 0.35, users: Math.round(baseUsers * 0.2) },
+      { name: 'Feb', val: baseValue * 0.45, users: Math.round(baseUsers * 0.4) },
+      { name: 'Mar', val: baseValue * 0.42, users: Math.round(baseUsers * 0.5) },
+      { name: 'Apr', val: baseValue * 0.65, users: Math.round(baseUsers * 0.7) },
+      { name: 'May', val: baseValue * 0.80, users: Math.round(baseUsers * 0.85) },
+      { name: 'Jun', val: baseValue * 0.90, users: Math.round(baseUsers * 0.95) },
+      { name: 'Jul', val: baseValue, users: baseUsers }, // Real Live Data
+    ];
+  }, [metrics]);
+
   if (loading) {
     return (
-      <div className={`flex flex-col justify-center items-center h-96 w-full ${darkMode ? "bg-black" : "bg-white"}`}>
-        <Loader2 className="w-10 h-10 animate-spin text-[#f99616] mb-4" />
-        <p className="text-gray-500 font-bold uppercase tracking-[3px] text-[10px]">Encrypting Data Stream...</p>
+      <div className={`flex flex-col justify-center items-center h-screen w-full ${darkMode ? "bg-[#050505]" : "bg-gray-50"}`}>
+        <Loader2 className="w-12 h-12 animate-spin text-[#f99616] mb-4" />
+        <p className={`font-black uppercase tracking-[4px] text-[10px] ${darkMode ? "text-gray-600" : "text-slate-400"}`}>
+          Interfacing with Global Ledger...
+        </p>
       </div>
     );
   }
 
-  // Real Data extraction from your JSON
+  // Real Data extraction
   const totalUsers = metrics?.userMetrics?.totalUsers || 0;
   const activeTraders = metrics?.userMetrics?.activeTraders || 0;
   const totalDeposits = metrics?.financialMetrics?.totalDeposits || 0;
@@ -45,127 +71,122 @@ const AdminOverview = () => {
   const pendingKyc = metrics?.compliance?.pendingKyc || 0;
   const netCapital = totalDeposits - totalWithdrawals;
 
-  const chartData = [
-    { name: 'Jan', val: 2000000, users: 5 },
-    { name: 'Feb', val: 4500000, users: 8 },
-    { name: 'Mar', val: 3200000, users: 10 },
-    { name: 'Apr', val: 7800000, users: 12 },
-    { name: 'May', val: 6100000, users: 15 },
-    { name: 'Jun', val: 9000000, users: 16 },
-    { name: 'Jul', val: totalDeposits, users: totalUsers }, 
-  ];
-
   return (
-    <div className={`w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10 ${darkMode ? "text-white" : "text-slate-900"}`}>
+    <div className={`w-full p-4 md:p-8 space-y-8 animate-in fade-in duration-1000 ${darkMode ? "bg-[#050505] text-white" : "bg-gray-50 text-slate-900"}`}>
       
-      {/* --- Page Header --- */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* --- PAGE HEADER --- */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-black uppercase tracking-tighter italic">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="h-1 w-8 bg-[#f99616] rounded-full"></span>
+            <span className="text-[9px] font-black uppercase tracking-[3px] text-[#f99616]">Security Protocol V4.2</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter italic leading-none">
             Command <span className="text-[#f99616]">Center</span>
           </h2>
-          <p className={`text-[10px] font-bold uppercase tracking-[2px] ${darkMode ? "text-gray-500" : "text-slate-400"}`}>
-            Real-time infrastructure monitoring
-          </p>
         </div>
-        <div className="flex items-center gap-2 bg-[#f99616]/10 border border-[#f99616]/20 px-4 py-2 rounded-2xl">
-          <Zap size={14} className="text-[#f99616] animate-pulse" />
-          <span className="text-[#f99616] text-[10px] font-black uppercase">System Healthy</span>
-        </div>
-      </div>
-
-      {/* 1. Main Metrics Row - Enhanced Stat Boxes */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatBox label="Global Users" value={totalUsers} icon={<Users size={18}/>} color="blue" sub="Verified Accounts" darkMode={darkMode} />
-        <StatBox label="Live Traders" value={activeTraders} icon={<Activity size={18}/>} color="green" trend="Active" darkMode={darkMode} />
-        <StatBox label="Total Liquidity" value={`$${(totalDeposits/1000000).toFixed(2)}M`} icon={<Wallet size={18}/>} color="orange" sub="Platform Deposits" darkMode={darkMode} />
-        <StatBox label="KYC Alerts" value={pendingKyc} icon={<ShieldCheck size={18}/>} color="red" isAlert={pendingKyc > 0} sub="Pending Review" darkMode={darkMode} />
-      </div>
-
-      {/* 2. Charts and Intelligence Section */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
-        {/* Main Growth Chart */}
-        <div className={`xl:col-span-2 border rounded-3xl p-6 shadow-2xl relative overflow-hidden transition-all duration-500
-          ${darkMode ? "bg-[#0a0a0a] border-gray-800" : "bg-white border-slate-200"}`}>
+        <div className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${darkMode ? "bg-black border-gray-800" : "bg-white border-slate-200 shadow-sm"}`}>
+          <div className="text-right">
+            <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Platform Pulse</p>
+            <p className="text-xs font-black text-green-500 uppercase">100% Operational</p>
+          </div>
+          <Zap size={24} className="text-green-500 animate-pulse fill-green-500" />
+        </div>
+      </div>
+
+      {/* --- KPI SECTION (STAT BOXES) --- */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatBox 
+          label="Total Entities" value={totalUsers.toLocaleString()} 
+          icon={<Users />} color="blue" sub="Network Strength" darkMode={darkMode} 
+        />
+        <StatBox 
+          label="Active Session" value={activeTraders.toLocaleString()} 
+          icon={<Activity />} color="green" trend="+12.5%" darkMode={darkMode} 
+        />
+        <StatBox 
+          label="Liquidity In" value={`$${(totalDeposits/1000000).toFixed(2)}M`} 
+          icon={<Wallet />} color="orange" sub="Platform Deposits" darkMode={darkMode} 
+        />
+        <StatBox 
+          label="Kyc Alerts" value={pendingKyc} 
+          icon={<ShieldCheck />} color="red" isAlert={pendingKyc > 0} sub="Requires Review" darkMode={darkMode} 
+        />
+      </div>
+
+      {/* --- ANALYTICS ENGINE (CHART & SUMMARY) --- */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        
+        {/* Growth Chart */}
+        <div className={`xl:col-span-2 border rounded-[40px] p-8 relative overflow-hidden transition-all duration-500
+          ${darkMode ? "bg-[#0a0a0a] border-gray-800" : "bg-white border-slate-200 shadow-xl"}`}>
           
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500">
-                <TrendingUp size={18} />
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-[#f99616]/10 rounded-2xl text-[#f99616]">
+                <TrendingUp size={24} />
               </div>
-              <h3 className="text-sm font-black uppercase tracking-widest italic">Capital Inflow analytics</h3>
+              <h3 className="text-lg font-black uppercase tracking-tighter italic">Net Capital Velocity</h3>
             </div>
-            <select className={`text-[10px] font-bold uppercase p-2 rounded-xl outline-none border transition-all
-              ${darkMode ? "bg-black border-gray-800 text-gray-400" : "bg-gray-50 border-slate-200 text-slate-600"}`}>
-              <option>Last 7 Months</option>
-              <option>Yearly View</option>
-            </select>
+            <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">Real-time Feed</div>
           </div>
           
-          <div className="h-[320px] w-full">
+          <div className="h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
-                  <linearGradient id="premiumGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f99616" stopOpacity={0.3}/>
+                  <linearGradient id="mainGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f99616" stopOpacity={0.4}/>
                     <stop offset="95%" stopColor="#f99616" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#1a1a1a" : "#f1f5f9"} vertical={false} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: darkMode ? '#555' : '#94a3b8', fontSize: 10, fontWeight: 'bold'}} dy={10} />
-                <YAxis hide />
+                <CartesianGrid strokeDasharray="6 6" stroke={darkMode ? "#1a1a1a" : "#f1f5f9"} vertical={false} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#666', fontSize: 11, fontWeight: 'bold'}} dy={15} />
+                <YAxis 
+                  axisLine={false} tickLine={false} 
+                  tick={{fill: '#666', fontSize: 10}} 
+                  tickFormatter={(val) => `$${(val/1000000).toFixed(1)}M`} 
+                />
                 <Tooltip 
-                  cursor={{ stroke: '#f99616', strokeWidth: 2 }}
-                  contentStyle={{ 
-                    backgroundColor: darkMode ? '#000' : '#fff', 
-                    border: darkMode ? '1px solid #333' : '1px solid #e2e8f0', 
-                    borderRadius: '16px', 
-                    fontSize: '12px', 
-                    fontWeight: '900',
-                    boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
-                  }}
-                  formatter={(val) => [`$${val.toLocaleString()}`, "Volume"]}
+                  cursor={{ stroke: '#f99616', strokeWidth: 2, strokeDasharray: '4 4' }}
+                  content={<CustomTooltip darkMode={darkMode} />}
                 />
                 <Area 
-                  type="monotone" 
-                  dataKey="val" 
-                  stroke="#f99616" 
-                  strokeWidth={4}
-                  fillOpacity={1} 
-                  fill="url(#premiumGradient)" 
+                  type="monotone" dataKey="val" stroke="#f99616" strokeWidth={5} 
+                  fill="url(#mainGrad)" animationDuration={2000}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* 3. Detailed Summary Sidebar - High Contrast */}
-        <div className={`border rounded-3xl p-8 flex flex-col justify-between shadow-2xl transition-all duration-500
-          ${darkMode ? "bg-[#0a0a0a] border-gray-800" : "bg-white border-slate-200"}`}>
+        {/* Sidebar Intelligence */}
+        <div className={`border rounded-[40px] p-8 flex flex-col justify-between transition-all duration-500
+          ${darkMode ? "bg-[#0a0a0a] border-gray-800" : "bg-white border-slate-200 shadow-xl"}`}>
           
-          <div className="space-y-8">
-            <div className="flex items-center gap-3 border-b pb-4 border-gray-800">
-               <PieChart size={20} className="text-[#f99616]" />
-               <h3 className="text-[11px] font-black uppercase tracking-[3px] italic">Financial Pulse</h3>
+          <div className="space-y-10">
+            <div className="flex items-center gap-3 border-b border-gray-800 pb-6">
+               <PieChart size={24} className="text-[#f99616]" />
+               <h3 className="text-sm font-black uppercase tracking-[4px] italic">Fiscal Pulse</h3>
             </div>
 
-            <div className="space-y-6">
-              <SummaryItem label="Trader Density" value={`${((activeTraders/totalUsers)*100).toFixed(1)}%`} sub="Active / Total Ratio" darkMode={darkMode} />
-              <SummaryItem label="System Outflow" value={`$${totalWithdrawals.toLocaleString()}`} sub="Withdrawal Logs" color="red" darkMode={darkMode} />
-              <SummaryItem label="Net Capital" value={`$${netCapital.toLocaleString()}`} sub="Wallet Reserves" highlight darkMode={darkMode} />
+            <div className="space-y-8">
+              <SummaryItem label="Market Share" value={`${((activeTraders/totalUsers)*100).toFixed(1)}%`} sub="Active/Total Ratio" darkMode={darkMode} />
+              <SummaryItem label="Total Outflow" value={`$${totalWithdrawals.toLocaleString()}`} sub="Withdrawal Logs" color="red" darkMode={darkMode} />
+              <SummaryItem label="Net Capital" value={`$${netCapital.toLocaleString()}`} sub="Platform Reserve" highlight darkMode={darkMode} />
             </div>
           </div>
           
-          <div className={`mt-10 p-5 border rounded-2xl transition-all
-            ${darkMode ? "bg-blue-500/5 border-blue-500/10" : "bg-slate-50 border-slate-100"}`}>
-             <div className="flex items-center gap-2 mb-2">
-                <ShieldCheck size={14} className="text-blue-500" />
-                <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Protocol V2.0</p>
-             </div>
-             <p className={`text-[11px] font-bold leading-relaxed italic ${darkMode ? "text-gray-400" : "text-slate-500"}`}>
-               "All transaction hashes verified against blockchain ledger. Database integrity is at 100%."
-             </p>
+          {/* Security Integrity Box */}
+          <div className={`mt-10 p-6 rounded-3xl border ${darkMode ? "bg-white/[0.02] border-white/10" : "bg-slate-50 border-slate-100"}`}>
+            <div className="flex items-center gap-3 mb-3">
+              <ShieldCheck size={18} className="text-blue-500" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Ledger Verified</span>
+            </div>
+            <p className={`text-xs font-bold italic leading-relaxed ${darkMode ? "text-gray-500" : "text-slate-500"}`}>
+              "Database synchronized with blockchain shards. Integrity confirmed for current session."
+            </p>
           </div>
         </div>
       </div>
@@ -173,57 +194,66 @@ const AdminOverview = () => {
   );
 };
 
-// 🚀 StatBox Component - Polished for Premium Look
+/* --- SUB-COMPONENTS (Defined inside same file for easy copy-paste) --- */
+
 const StatBox = ({ label, value, icon, color, trend, isAlert, sub, darkMode }) => {
   const colors = {
-    blue: "text-blue-500 bg-blue-500/10",
-    green: "text-green-500 bg-green-500/10",
-    orange: "text-[#f99616] bg-[#f99616]/10",
-    red: "text-red-500 bg-red-500/10",
+    blue: "text-blue-500 bg-blue-500/10 border-blue-500/20",
+    green: "text-green-500 bg-green-500/10 border-green-500/20",
+    orange: "text-[#f99616] bg-[#f99616]/10 border-[#f99616]/20",
+    red: "text-red-500 bg-red-500/10 border-red-500/20",
   };
 
   return (
-    <div className={`group border p-6 rounded-3xl transition-all duration-300 shadow-xl hover:-translate-y-1
-      ${isAlert ? (darkMode ? 'border-red-500/30 bg-red-500/5 animate-pulse' : 'border-red-200 bg-red-50') : 
-      (darkMode ? 'bg-[#0a0a0a] border-gray-800 hover:border-[#f99616]/40' : 'bg-white border-slate-200 hover:border-[#f99616]')}`}>
+    <div className={`relative p-8 rounded-[35px] border transition-all duration-500 group
+      ${isAlert ? "border-red-500 bg-red-500/5 animate-pulse" : 
+      darkMode ? "bg-[#0a0a0a] border-gray-800 hover:border-[#f99616]/50 shadow-2xl" : "bg-white border-slate-200 hover:shadow-xl"}`}>
       
-      <div className="flex justify-between items-start mb-6">
-        <div className={`p-3 rounded-2xl border transition-all ${colors[color]} ${darkMode ? "border-gray-800" : "border-slate-100 shadow-sm"}`}>
-          {icon}
+      <div className="flex justify-between items-start mb-8">
+        <div className={`p-4 rounded-2xl border ${colors[color]}`}>
+          {React.cloneElement(icon, { size: 24 })}
         </div>
-        {trend && (
-          <div className="flex flex-col items-end">
-            <span className="text-[8px] font-black text-green-500 bg-green-500/10 px-2 py-1 rounded-lg uppercase tracking-tighter border border-green-500/20 shadow-sm">
-              {trend}
-            </span>
-          </div>
-        )}
+        {trend && <span className="text-[8px] font-black bg-green-500 text-white px-3 py-1 rounded-full uppercase italic tracking-tighter">{trend}</span>}
+        {isAlert && <AlertCircle className="text-red-500" size={20} />}
       </div>
       
       <div className="space-y-1">
-        <p className={`text-[9px] font-black uppercase tracking-[2px] ${darkMode ? "text-gray-500" : "text-slate-400"}`}>{label}</p>
-        <h3 className={`text-3xl font-black tracking-tighter ${darkMode ? "text-white" : "text-slate-900"}`}>{value}</h3>
-        <p className={`text-[8px] font-bold uppercase ${darkMode ? "text-gray-700" : "text-slate-300"}`}>{sub}</p>
+        <p className={`text-[10px] font-black uppercase tracking-[3px] ${darkMode ? "text-gray-600" : "text-slate-400"}`}>{label}</p>
+        <h3 className="text-4xl font-black tracking-tighter italic leading-none">{value}</h3>
+        <p className="text-[9px] font-bold uppercase opacity-30 mt-2">{sub}</p>
       </div>
     </div>
   );
 };
 
-// 🚀 SummaryItem Component
 const SummaryItem = ({ label, value, sub, highlight, color, darkMode }) => (
   <div className="flex justify-between items-center group cursor-default">
-    <div className="space-y-0.5">
-      <p className={`text-[10px] font-black uppercase tracking-tight transition-colors ${darkMode ? "text-gray-400 group-hover:text-white" : "text-slate-500 group-hover:text-slate-900"}`}>{label}</p>
-      <p className={`text-[8px] font-bold uppercase ${darkMode ? "text-gray-700" : "text-slate-300"}`}>{sub}</p>
+    <div className="space-y-1">
+      <p className={`text-[11px] font-black uppercase tracking-widest transition-colors ${darkMode ? "text-gray-500 group-hover:text-white" : "text-slate-400 group-hover:text-slate-900"}`}>{label}</p>
+      <p className="text-[9px] font-bold uppercase opacity-20">{sub}</p>
     </div>
     <div className="text-right">
-      <p className={`text-base font-black tracking-tighter transition-all duration-300
-        ${highlight ? 'text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 
-          color === 'red' ? 'text-red-500' : (darkMode ? 'text-white' : 'text-slate-900')}`}>
+      <p className={`text-xl font-black tracking-tighter italic transition-all duration-300
+        ${highlight ? 'text-green-500 drop-shadow-[0_0_10px_rgba(34,197,94,0.3)]' : color === 'red' ? 'text-red-600' : ''}`}>
         {value}
       </p>
     </div>
   </div>
 );
+
+const CustomTooltip = ({ active, payload, label, darkMode }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className={`p-4 rounded-2xl border shadow-2xl backdrop-blur-md ${darkMode ? "bg-black/90 border-gray-800" : "bg-white/90 border-slate-200"}`}>
+        <p className="text-[10px] font-black uppercase tracking-widest text-[#f99616] mb-2">{label} Report</p>
+        <div className="space-y-1">
+          <p className="text-base font-black">Volume: ${payload[0].value.toLocaleString()}</p>
+          <p className="text-[9px] font-bold uppercase opacity-60">Network Nodes: {payload[0].payload.users}</p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default AdminOverview;

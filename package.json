@@ -10,9 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@coreui/coreui": "^5.5.0",
+    "@coreui/coreui-pro": "^5.23.0",
+    "@coreui/react": "^5.9.2",
+    "@coreui/react-pro": "^5.23.5",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.7",
+    "@mui/x-data-grid": "^8.26.0",
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/react-table": "^8.21.3",
     "axios": "^1.13.2",
     "chart.js": "^4.5.1",
     "framer-motion": "^12.23.26",
@@ -25,6 +34,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.10.1",
     "recharts": "^3.6.0",
+    "smart-webcomponents-react": "^25.0.3",
     "sweetalert2": "^11.26.17",
     "swiper": "^12.0.3"
   },

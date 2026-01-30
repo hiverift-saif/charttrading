@@ -4,7 +4,7 @@ import { setAccountType, setBalance, updateDemoBalance } from '../redux/tradingS
 import {
   User, LogOut, ChevronDown, Plus,
   Wallet, Award, Monitor, Menu, PanelRight,
-  Sun, Moon, History, Settings
+  Sun, Moon, History, Settings, Bell, BellRing, Check
 } from 'lucide-react';
 import { useTheme } from "../context/ThemeContext";
 import logo from "../assets/logo.png";
@@ -17,8 +17,12 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
   const { balance, demoBalance, accountType, isSyncing } = useSelector((state) => state.trading);
   
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false); // 🚀 Notification State
+  const [notifications, setNotifications] = useState([]); // 🚀 Notification Data
   const [userData, setUserData] = useState({ name: "Trader", email: "" });
+  
   const menuRef = useRef(null);
+  const notifRef = useRef(null); // 🚀 Notification Ref
 
   const currentBalance = accountType === 'demo' ? demoBalance : balance;
 
@@ -26,6 +30,48 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
     const num = parseFloat(value);
     if (isNaN(num) || num == null || !isFinite(num)) return "0.00";
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  // --- 🔔 FETCH NOTIFICATIONS API ---
+  const fetchNotifications = useCallback(async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/notifications`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      console.log("Notifications fetched:", data[0]);
+      if (response.ok) {
+        setNotifications(data || []);
+      }
+    } catch (error) {
+      console.error("Notif fetch failed");
+    }
+  }, []);
+
+  // --- ✅ MARK AS READ API ---
+  const markAsRead = async (id) => {
+    const token = localStorage.getItem('access_token');
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/notifications/${id}/read`, {
+        method: 'PUT', // Backend support ke according POST/PUT
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (response.ok) {
+        // UI se turant hatane ke liye filter
+        setNotifications(prev => prev.filter(n => n._id !== id));
+      }
+    } catch (error) {
+      console.error("Read mark failed");
+    }
   };
 
   const fetchBalance = useCallback(async () => {
@@ -52,12 +98,17 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
+    console.log("Header mounted, token:", token);
     if (token) {
       fetchBalance();
-      const timer = setInterval(fetchBalance, 10000);
+      fetchNotifications(); // 🚀 Initial Notif Fetch
+      const timer = setInterval(() => {
+        fetchBalance();
+        fetchNotifications(); // 🚀 Polling Notifications
+      }, 10000);
       return () => clearInterval(timer);
     }
-  }, [fetchBalance]);
+  }, [fetchBalance, fetchNotifications]);
 
   useEffect(() => {
     const savedName = localStorage.getItem('user_name');
@@ -68,6 +119,7 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
 
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) setIsProfileOpen(false);
+      if (notifRef.current && !notifRef.current.contains(event.target)) setIsNotifOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -89,7 +141,6 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
       
       {/* Left Section: Menu & Logo */}
       <div className="flex items-center gap-1 md:gap-4">
-        {/* Toggle Sidebar (Screenshot menu open karega) */}
         <button 
           onClick={toggleLeftSidebar} 
           className={`p-2 rounded-lg transition-all active:scale-90 ${darkMode ? "hover:bg-white/10 text-gray-400" : "hover:bg-gray-100 text-gray-600"}`}
@@ -109,7 +160,64 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
       {/* Right Section: Theme, Deposit, Account */}
       <div className="flex items-center gap-1.5 md:gap-4 h-full">
         
-        {/* Theme Toggle (Hidden on very small screens to save space) */}
+        {/* 🚀 Notification Bell */}
+        <div className="relative" ref={notifRef}>
+          <button 
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
+            className={`p-2 rounded-lg transition-all active:scale-90 relative ${darkMode ? "hover:bg-white/10 text-gray-400" : "hover:bg-gray-100 text-gray-600"}`}
+          >
+            {notifications.length > 0 ? (
+              <BellRing size={20} className="text-[#f99616] animate-pulse" />
+            ) : (
+              <Bell size={20} />
+            )}
+            {notifications.length > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 bg-red-600 text-white text-[8px] font-black rounded-full flex items-center justify-center border border-black animate-bounce">
+                {notifications.length}
+              </span>
+            )}
+          </button>
+
+          {/* 🔔 Notification Dropdown */}
+          {isNotifOpen && (
+            <div className={`absolute right-0 mt-3 w-72 md:w-80 border rounded-2xl shadow-2xl z-[1000] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 
+              ${darkMode ? "bg-[#0d0d0d] border-gray-800 text-white" : "bg-white border-gray-200 text-black"}`}>
+              <div className="p-4 border-b border-gray-800/50 flex justify-between items-center">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">System Alerts</span>
+                <span className="text-[9px] bg-[#f99616]/10 text-[#f99616] px-2 py-0.5 rounded-md font-black">{notifications.length} New</span>
+              </div>
+              <div className="max-h-96 overflow-y-auto custom-sidebar-scroll">
+                {notifications.length === 0 ? (
+                  <div className="p-10 text-center">
+                    <Bell className="mx-auto text-gray-800 mb-2 opacity-20" size={32} />
+                    <p className="text-[10px] text-gray-600 font-bold uppercase italic tracking-widest">Inbox is empty</p>
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div key={notif._id} className={`p-4 border-b last:border-0 flex gap-3 transition-colors ${darkMode ? "border-gray-900 hover:bg-white/5" : "border-gray-50 hover:bg-gray-50"}`}>
+                      <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center ${notif.type === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-[#f99616]/10 text-[#f99616]'}`}>
+                        <BellRing size={14} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-black uppercase tracking-tight truncate">{notif.title}</p>
+                        <p className="text-[10px] text-gray-500 leading-tight mt-1 line-clamp-2 italic">{notif.message}</p>
+                        <p className="text-[8px] text-gray-600 mt-2 font-black uppercase tracking-tighter">{new Date(notif.createdAt).toLocaleTimeString()}</p>
+                      </div>
+                      <button 
+                        onClick={() => markAsRead(notif._id)} 
+                        className="self-start p-1.5 hover:bg-green-500/20 rounded-lg text-gray-600 hover:text-green-500 transition-all"
+                      >
+                        <Check size={16} />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Theme Toggle */}
         <button onClick={toggleTheme} className={`hidden sm:flex p-2 rounded-lg transition-all active:scale-90 items-center justify-center border 
           ${darkMode ? "bg-zinc-800 border-zinc-700 text-yellow-400" : "bg-gray-100 border-gray-200 text-blue-600"}`}>
           {darkMode ? <Sun size={18} fill="currentColor" /> : <Moon size={18} fill="currentColor" />}
@@ -124,7 +232,7 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
           <span className="tracking-tight">DEPOSIT</span>
         </button>
 
-        {/* Balance & Account Switcher */}
+        {/* Balance & Account Switcher Trigger */}
         <div className="flex flex-col items-end cursor-pointer group px-1" onClick={() => setIsProfileOpen(!isProfileOpen)}>
           <span className={`text-[6px] md:text-[9px] font-black uppercase tracking-tighter md:tracking-widest leading-none ${accountType === 'demo' ? 'text-orange-400' : 'text-[#f99616]'}`}>
             {accountType === 'demo' ? 'Demo' : 'Live'} Account
@@ -137,29 +245,26 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
           </div>
         </div>
 
-       {/* Right Sidebar Trigger (Mobile + Desktop dono ke liye) */}
-<div className="flex items-center gap-1 md:gap-3" ref={menuRef}>
-  
-  {/* 🚀 FIXED: 'hidden md:block' hata kar sirf 'flex' rakha hai */}
-  <button 
-    onClick={toggleRightSidebar} 
-    className={`p-2 rounded-lg transition-all active:scale-90 flex items-center justify-center
-      ${darkMode ? "hover:bg-white/10 text-gray-400" : "hover:bg-gray-100 text-gray-600"}`}
-  >
-    <PanelRight size={22} className="md:w-[24px] md:h-[24px]" />
-  </button>
+        {/* Action Icons Section */}
+        <div className="flex items-center gap-1 md:gap-3" ref={menuRef}>
+          <button 
+            onClick={toggleRightSidebar} 
+            className={`p-2 rounded-lg transition-all active:scale-90 flex items-center justify-center
+              ${darkMode ? "hover:bg-white/10 text-gray-400" : "hover:bg-gray-100 text-gray-600"}`}
+          >
+            <PanelRight size={22} className="md:w-[24px] md:h-[24px]" />
+          </button>
 
-  {/* Profile Circle */}
-  <div 
-    onClick={() => setIsProfileOpen(!isProfileOpen)} 
-    className={`w-7 h-7 md:w-10 md:h-10 rounded-full flex items-center justify-center cursor-pointer border relative transition-all 
-    ${isProfileOpen 
-      ? (darkMode ? 'bg-gray-800 border-[#f99616] text-white' : 'bg-gray-100 border-[#f99616] text-black') 
-      : (darkMode ? 'bg-gray-900 border-gray-800 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-600')}`}
-  >
-    <User size={14} className="md:w-[18px] md:h-[18px]" />
-    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 md:w-2.5 md:h-2.5 bg-[#f99616] border border-black rounded-full"></div>
-  </div>
+          <div 
+            onClick={() => setIsProfileOpen(!isProfileOpen)} 
+            className={`w-7 h-7 md:w-10 md:h-10 rounded-full flex items-center justify-center cursor-pointer border relative transition-all 
+            ${isProfileOpen 
+              ? (darkMode ? 'bg-gray-800 border-[#f99616] text-white' : 'bg-gray-100 border-[#f99616] text-black') 
+              : (darkMode ? 'bg-gray-900 border-gray-800 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-600')}`}
+          >
+            <User size={14} className="md:w-[18px] md:h-[18px]" />
+            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 md:w-2.5 md:h-2.5 bg-[#f99616] border border-black rounded-full"></div>
+          </div>
 
           {/* Profile Dropdown */}
           {isProfileOpen && (
@@ -167,7 +272,7 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
               ${darkMode ? "bg-[#0d0d0d] border-gray-800 text-white" : "bg-white border-gray-200 text-black"}`}>
               <div className="flex flex-col md:flex-row">
                 <div className={`flex-1 p-3 md:p-4 border-b md:border-b-0 md:border-r ${darkMode ? "border-gray-800" : "border-gray-100"}`}>
-                  <p className="text-[8px] md:text-[9px] text-gray-500 font-black uppercase mb-3 md:mb-4 tracking-widest">Account Type</p>
+                  <p className="text-[8px] md:text-[9px] text-gray-500 font-black uppercase mb-3 md:mb-4 tracking-widest">Account Switch</p>
                   <div className="space-y-1.5 md:space-y-2">
                     <AccountOption active={accountType === 'real'} onClick={() => handleSwitchAccount('real')} label="Real Account" bal={balance} icon={<Wallet size={14} />} color="text-[#f99616]" darkMode={darkMode} formatBalance={formatBalance} />
                     <AccountOption active={accountType === 'demo'} onClick={() => handleSwitchAccount('demo')} label="Demo Account" bal={demoBalance} icon={<Monitor size={14} />} color="text-orange-400" darkMode={darkMode} formatBalance={formatBalance} />
@@ -202,6 +307,7 @@ const Header = ({ setActiveTab, toggleLeftSidebar, toggleRightSidebar }) => {
   );
 };
 
+// Helper Components
 const AccountOption = ({ active, onClick, label, bal, icon, color, darkMode, formatBalance }) => (
   <div onClick={onClick} className={`p-2.5 md:p-3 rounded-lg md:rounded-xl border transition-all cursor-pointer flex justify-between items-center ${active ? (darkMode ? 'bg-[#f99616]/10 border-[#f99616]' : 'bg-orange-50 border-[#f99616]') : (darkMode ? 'border-gray-800 hover:bg-white/5' : 'border-gray-200 hover:bg-gray-50')}`}>
     <div className="flex items-center gap-2 md:gap-3">
