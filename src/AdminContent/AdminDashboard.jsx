@@ -24,6 +24,8 @@ import { Menu, Sun, Moon, Bell } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import AdminBalanceAdjust from "./AdminBalanceAdjust";
 import NexusAnalytics from "./NexusAnalytics";
+import logo from "../assets/logo.png";
+
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -140,56 +142,68 @@ case "reports_export":
       {/* --- MAIN CONTENT AREA --- */}
       <div className="flex-1 flex flex-col min-w-0 h-full lg:ml-72 relative">
         {/* HEADER */}
-        <header
-          className={`fixed top-0 left-0 lg:left-72 right-0 h-16 flex items-center justify-between px-6 border-b z-[500] backdrop-blur-md transition-all 
-          ${darkMode ? "bg-black/80 border-gray-800" : "bg-white/80 border-slate-200 shadow-sm"}`}
-        >
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden text-[#f99616] p-1 hover:scale-110 transition-transform"
-            >
-              <Menu size={26} />
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#f99616] rounded-lg flex items-center justify-center font-black text-black italic text-lg shadow-[0_0_15px_rgba(249,150,22,0.3)]">
-                B
-              </div>
-              <h1 className="text-sm font-black uppercase tracking-tighter hidden sm:block">
-                Admin <span className="text-[#f99616]">Terminal</span>
-              </h1>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-3">
-            {/* Theme Toggle */}
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className={`p-2.5 rounded-xl border transition-all active:scale-90 hover:rotate-12
-                ${darkMode ? "bg-zinc-900 border-zinc-800 text-yellow-400" : "bg-slate-100 border-slate-200 text-slate-600"}`}
-            >
-              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
 
-            {/* Root Access Indicator */}
-            <div
-              className={`h-10 px-4 rounded-xl border flex items-center gap-3 transition-all ${
-                darkMode
-                  ? "bg-zinc-900/50 border-zinc-800"
-                  : "bg-white border-slate-200 shadow-sm"
-              }`}
-            >
-              <div className="relative">
-                <div className="w-2 h-2 bg-[#f99616] rounded-full animate-ping absolute inset-0"></div>
-                <div className="w-2 h-2 bg-[#f99616] rounded-full relative"></div>
-              </div>
-              <span className="text-[9px] font-black uppercase tracking-[2px] hidden md:block">
-                System Root
-              </span>
-            </div>
-          </div>
-        </header>
+<header
+  className={`fixed top-0 left-0 lg:left-72 right-0 h-16 flex items-center justify-between px-6 border-b z-[500] backdrop-blur-md transition-all 
+  ${darkMode ? "bg-black/80 border-gray-800" : "bg-white/80 border-slate-200 shadow-sm"}`}
+>
+  <div className="flex items-center gap-4">
+    {/* Mobile Menu Toggle */}
+    <button
+      onClick={() => setIsSidebarOpen(true)}
+      className="lg:hidden text-[#f99616] p-1 hover:scale-110 transition-transform"
+    >
+      <Menu size={26} />
+    </button>
 
+    {/* 🚀 ONLY LOGO SECTION */}
+    <div className="relative group cursor-pointer">
+      <img 
+        src={logo} 
+        alt="Binovera Admin" 
+        className={`
+          /* 📱 Mobile: Bada aur Bold */
+          w-auto h-20 
+          /* 💻 Desktop: Clean aur Wide */
+          md:w-auto md:h-30 
+          
+          object-contain transition-all duration-500
+          
+          /* 🌓 Theme Logic */
+          ${darkMode 
+           ? "brightness-110 drop-shadow-[0_0_15px_rgba(249,150,22,0.5)]"
+      : "invert opacity-90 contrast-125 drop-shadow-[0_1px_3px_rgba(0,0,0,0.15)]"}
+          /* ✨ Hover Animation */
+          group-hover:scale-105 transition-transform
+        `}
+      />
+    </div>
+  </div>
+
+  <div className="flex items-center gap-3">
+    {/* Theme Toggle */}
+    <button
+      onClick={() => setDarkMode(!darkMode)}
+      className={`p-2.5 rounded-xl border transition-all active:scale-90 hover:rotate-12
+        ${darkMode ? "bg-zinc-900 border-zinc-800 text-yellow-400" : "bg-slate-100 border-slate-200 text-slate-600"}`}
+    >
+      {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+    </button>
+
+    {/* Root Status Indicator */}
+    <div
+      className={`h-10 px-4 rounded-xl border flex items-center gap-3 transition-all ${
+        darkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-slate-200 shadow-sm"
+      }`}
+    >
+      <div className="w-2 h-2 bg-[#f99616] rounded-full animate-pulse shadow-[0_0_8px_#f99616]"></div>
+      <span className="text-[9px] font-black uppercase tracking-[2px] hidden md:block">
+        Live
+      </span>
+    </div>
+  </div>
+</header>
         {/* MAIN RENDER BOX */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden pt-16 custom-main-scroll bg-transparent">
           <div className="p-4 md:p-10 max-w-[1600px] mx-auto min-h-full animate-in fade-in zoom-in-95 duration-500">

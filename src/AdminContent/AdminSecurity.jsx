@@ -109,24 +109,52 @@ const AdminSecurity = ({ darkMode }) => {
   };
 
   // --- 🔑 RESET PASSWORD ---
-  const handleResetPassword = async (userId, email) => {
-    const token = localStorage.getItem("admin_token");
-    try {
-      const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${userId}/reset-password`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+const handleResetPassword = async (userId, email) => {
+  const token = localStorage.getItem("admin_token");
+  
+  // 1. Pehle confirm karo ki admin sach mein reset karna chahta hai
+  const confirm = await Swal.fire({
+    title: 'Reset User Password?',
+    text: `A new secure password will be dispatched to ${email}. Admin will not see the new password.`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#f99616',
+    confirmButtonText: 'Yes, Send Email',
+    background: darkMode ? '#0d0d0d' : '#fff',
+    color: darkMode ? '#fff' : '#000',
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  try {
+    const response = await fetch(`${API_CONFIG.baseURL}/admin/users/${userId}/reset-password`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      // ✅ SUCCESS: Admin ko password nahi dikhana, sirf confirmation dena
+      Swal.fire({ 
+        title: 'Protocol Executed', 
+        text: `Temporary access code has been securely transmitted to ${email}.`, 
+        icon: 'success',
+        background: darkMode ? '#0d0d0d' : '#fff',
+        confirmButtonColor: '#f99616'
       });
-      const data = await response.json();
-      if (response.ok) {
-        Swal.fire({ 
-          title: 'New Password Generated', 
-          text: `Temp Password: ${data.result.newPassword}`, 
-          icon: 'success',
-          background: darkMode ? '#0d0d0d' : '#fff'
-        });
-      }
-    } catch (err) { console.error(err); }
-  };
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (err) { 
+    Swal.fire({
+      icon: 'error',
+      title: 'Transmission Failed',
+      text: err.message || 'System was unable to reset the password.',
+      background: darkMode ? '#0d0d0d' : '#fff',
+    });
+  }
+};
 
   // --- 🔍 Filter & Pagination ---
   const filteredData = useMemo(() => {
