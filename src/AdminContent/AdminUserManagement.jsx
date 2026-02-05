@@ -6,6 +6,7 @@ import {
   Search, Globe, Phone, Wallet, Activity, User as UserIcon
 } from "lucide-react";
 import API_CONFIG from "../config";
+import { motion, AnimatePresence } from "framer-motion"; // 👈 Ye import zaroori hai
 import { useTheme } from "../context/ThemeContext";
 
 const AdminUserManagement = ({ filterType }) => {
@@ -170,32 +171,49 @@ const AdminUserManagement = ({ filterType }) => {
       </div>
 
       {/* 🚀 OPERATIONAL MODAL */}
-      {selectedUser && (
-        <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
-           <div className={`w-full max-w-2xl border border-zinc-800 bg-black p-6 md:p-8 rounded-none animate-in zoom-in-95 duration-300 overflow-y-auto max-h-[90vh]`}>
-              <div className="flex justify-between items-center mb-8 border-b border-zinc-800 pb-4">
-                 <h3 className="font-black uppercase italic text-xl text-[#f99616] flex items-center gap-3">
-                    <Activity size={20}/> Operational Analytics
-                 </h3>
-                 <button onClick={() => setSelectedUser(null)} className="p-2 hover:bg-red-500 rounded-lg transition-colors"><X size={20}/></button>
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-                 <StatBox label="Total Trades" value={selectedUser.totalTrades || 0} />
-                 <StatBox label="Active Orders" value={selectedUser.totalOrders || 0} />
-                 <StatBox label="Real Equity" value={`$${selectedUser.realBalance}`} color="#f99616" />
-                 <StatBox label="Wallet Bal" value={`$${selectedUser.walletBalance}`} color="#f99616" />
-              </div>
-
-              <div className="space-y-3">
-                 <InfoRow label="Email Identity" value={selectedUser.email} />
-                 <InfoRow label="Contact Node" value={selectedUser.phone || 'N/A'} />
-                 <InfoRow label="Tier Protocol" value={selectedUser.tier} />
-                 <InfoRow label="Region" value={selectedUser.country} />
-              </div>
-           </div>
+<AnimatePresence>
+  {selectedUser && (
+    <motion.div 
+      // Background Overlay
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 lg:left-72 z-[1000] bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+    >
+      <motion.div 
+        // Modal Body (Smooth Zoom & Slide)
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="w-full max-w-2xl border border-zinc-800 bg-black p-6 md:p-8 rounded-[2rem] shadow-2xl overflow-y-auto max-h-[90vh]"
+      >
+        {/* Header Section */}
+        <div className="flex justify-between items-center mb-8 border-b border-zinc-800 pb-4">
+           <h3 className="font-black uppercase italic text-xl text-[#f99616] flex items-center gap-3">
+              <Activity size={20}/> Operational Analytics
+           </h3>
+           <button onClick={() => setSelectedUser(null)} className="p-2 hover:bg-red-500/20 text-gray-500 hover:text-red-500 rounded-xl transition-all"><X size={20}/></button>
         </div>
-      )}
+        
+        {/* Stat Boxes & Info Rows (Same as before) */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+           <StatBox label="Total Trades" value={selectedUser.totalTrades || 0} />
+           <StatBox label="Active Orders" value={selectedUser.totalOrders || 0} />
+           <StatBox label="Real Equity" value={`$${selectedUser.realBalance}`} color="#f99616" />
+           <StatBox label="Wallet Bal" value={`$${selectedUser.walletBalance}`} color="#f99616" />
+        </div>
+
+        <div className="space-y-3">
+           <InfoRow label="Email Identity" value={selectedUser.email} />
+           <InfoRow label="Contact Node" value={selectedUser.phone || 'N/A'} />
+           <InfoRow label="Tier Protocol" value={selectedUser.tier} />
+           <InfoRow label="Region" value={selectedUser.country} />
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
     </div>
   );
 };

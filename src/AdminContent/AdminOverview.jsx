@@ -10,6 +10,7 @@ import {
 import axios from 'axios';
 import API_CONFIG from '../config'; 
 import { useTheme } from "../context/ThemeContext";
+import Dashboard from './../AffiliateDashboard/Dashboard';
 
 const AdminOverview = () => {
   const { darkMode } = useTheme();
@@ -72,17 +73,17 @@ const AdminOverview = () => {
   const netCapital = totalDeposits - totalWithdrawals;
 
   return (
-    <div className={`w-full p-4 md:p-8 space-y-8 animate-in fade-in duration-1000 ${darkMode ? "bg-[#050505] text-white" : "bg-gray-50 text-slate-900"}`}>
+    <div className={`w-full p-4 md:p-8 space-y-8 animate-in fade-in duration-1000 ${darkMode ? " text-white" : "bg-gray-50 text-slate-900"}`}>
       
       {/* --- PAGE HEADER --- */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="h-1 w-8 bg-[#f99616] rounded-full"></span>
-            <span className="text-[9px] font-black uppercase tracking-[3px] text-[#f99616]">Security Protocol V4.2</span>
+            {/* <span className="h-1 w-8 bg-[#f99616] rounded-full"></span> */}
+            {/* <span className="text-[9px] font-black uppercase tracking-[3px] text-[#f99616]">Security Protocol V4.2</span> */}
           </div>
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter italic leading-none">
-            Command <span className="text-[#f99616]">Center</span>
+          <h2 className="text-4xl md:text-2xl font-black uppercase tracking-tighter italic leading-none">
+             <span className="text-[#f99616]">Dashboard</span>
           </h2>
         </div>
         
@@ -168,7 +169,7 @@ const AdminOverview = () => {
           <div className="space-y-10">
             <div className="flex items-center gap-3 border-b border-gray-800 pb-6">
                <PieChart size={24} className="text-[#f99616]" />
-               <h3 className="text-sm font-black uppercase tracking-[4px] italic">Fiscal Pulse</h3>
+               <h3 className="text-sm font-black uppercase tracking-[4px] italic">  Market Analytics  </h3>
             </div>
 
             <div className="space-y-8">

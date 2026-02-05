@@ -72,6 +72,7 @@ const AdminLogin = () => {
       }
     }
   };
+  
 
   // --- 🚀 TIMER LOGIC ---
   useEffect(() => {
@@ -153,10 +154,16 @@ const AdminLogin = () => {
         role: "admin",
         otp: formData.otp
       });
-      if (response.data.statusCode === 200) {
-        localStorage.setItem("admin_token", response.data.result.access_token);
-        navigate("/admin");
-      }
+// ... (inside handleVerify2FA)
+if (response.data.statusCode === 200) {
+  localStorage.setItem("admin_token", response.data.result.access_token);
+  localStorage.setItem("otp",response.data.result.otp);
+    localStorage.setItem("role",response.data.result.role);
+
+  // 🚀 Backend se aane wale permissions array ko save kar rahe hain
+  localStorage.setItem("admin_permissions", JSON.stringify(response.data.result.role.permissions || []));
+  navigate("/admin");
+}
     } catch (error) {
       Swal.fire({ icon: "error", title: "Verification Failed", background: darkMode ? "#0d0d0d" : "#fff" });
     } finally {
@@ -208,7 +215,7 @@ const AdminLogin = () => {
               <label className="text-[10px] font-bold uppercase tracking-widest ml-1 text-gray-500">Enter 6-Digit OTP</label>
               <div className="relative">
                 <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-[#f99616]" size={18} />
-                <input type="text" name="otp" required maxLength="6" value={formData.otp} onChange={handleChange} placeholder="000000" className={`w-full border rounded-xl py-4 pl-12 pr-4 text-center text-xl tracking-[10px] font-black outline-none transition-all ${darkMode ? "bg-black border-gray-800 text-[#f99616]" : "bg-gray-50 border-gray-200"}`} />
+                <input  type="text" name="otp" required maxLength="6" value={formData.otp} onChange={handleChange} placeholder="000000" className={`w-full border rounded-xl py-4 pl-12 pr-4 text-center text-xl tracking-[10px] font-black outline-none transition-all ${darkMode ? "bg-black border-gray-800 text-[#f99616]" : "bg-gray-50 border-gray-200"}`} />
               </div>
               <div className="flex flex-col items-center gap-2 mt-4">
                 <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest">{timer > 0 ? `Code expires in ${timer}s` : "Code expired"}</p>
