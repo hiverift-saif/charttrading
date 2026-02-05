@@ -3,7 +3,7 @@ import axios from "axios";
 import {
   LayoutDashboard, Users, Wallet, ShieldCheck, History,
   LogOut, X, ChevronDown, Settings, Activity, MonitorDot,
-  ShieldAlert, Star, Shield, BarChart3, Loader2,
+  ShieldAlert, Star, Shield, BarChart3, Loader2,BellRing 
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -122,7 +122,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
           {/* 🛡️ SECURITY PROTOCOL */}
           {(can("VIEW_SECURITY") || can("MANAGE_SECURITY")) && (
             <DropdownMenu isOpen={isSecurityOpen} setIsOpen={setIsSecurityOpen} label="MANAGE SECURITY" icon={<ShieldAlert size={18} />} active={activeTab === "security_access_control" || activeTab === "security_logs" || activeTab === "user_block_control"} darkMode={darkMode}>
-              {can("BLOCK_USERS") && <SidebarSubLink id="user_block_control" label="BLOCK USERS" activeTab={activeTab} setActiveTab={setActiveTab} setIsOpen={setIsOpen} darkMode={darkMode} />}
+              {can("BLOCK_USERS") && <SidebarSubLink id="user_block_control" label="AUDIT LOGS" activeTab={activeTab} setActiveTab={setActiveTab} setIsOpen={setIsOpen} darkMode={darkMode} />}
               {can("MANAGE_SECURITY") && <SidebarSubLink id="security_access_control" label="User Control" activeTab={activeTab} setActiveTab={setActiveTab} setIsOpen={setIsOpen} darkMode={darkMode} />}
               {can("VIEW_SECURITY") && <SidebarSubLink id="security_logs" label="Identity Logs" activeTab={activeTab} setActiveTab={setActiveTab} setIsOpen={setIsOpen} darkMode={darkMode} />}
             </DropdownMenu>
@@ -167,6 +167,19 @@ const AdminSidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
     darkMode={darkMode} 
   />
 )}
+
+{can("SEND_NOTIFICATIONS") && (
+  <SidebarLink 
+    id="reports_notifications" 
+    label="BROADCAST CENTER" 
+    icon={<BellRing size={18} />} 
+    activeTab={activeTab} 
+    setActiveTab={setActiveTab} 
+    setIsOpen={setIsOpen} 
+    darkMode={darkMode} 
+  />
+)}
+
           {can("VIEW_REFERRALS") && <SidebarLink id="influencer_promo" label="INFLUENCER PROMO" icon={<Star size={18} />} activeTab={activeTab} setActiveTab={setActiveTab} setIsOpen={setIsOpen} darkMode={darkMode} />}
           {can("VIEW_KYC") && <SidebarLink id="kyc" label="- KYC MANAGEMENT" icon={<ShieldCheck size={18} />} activeTab={activeTab} setActiveTab={setActiveTab} setIsOpen={setIsOpen} darkMode={darkMode} />}
           {can("MANAGE_TRADES") && <SidebarLink id="trades" label="- TRADE LEDGER" icon={<History size={18} />} activeTab={activeTab} setActiveTab={setActiveTab} setIsOpen={setIsOpen} darkMode={darkMode} />}

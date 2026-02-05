@@ -175,11 +175,13 @@ const AdminUserManagement = ({ filterType }) => {
   {selectedUser && (
     <motion.div 
       // Background Overlay
-      initial={{ opacity: 0 }}
+initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 lg:left-72 z-[1000] bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
     >
+
+
       <motion.div 
         // Modal Body (Smooth Zoom & Slide)
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -211,6 +213,7 @@ const AdminUserManagement = ({ filterType }) => {
            <InfoRow label="Region" value={selectedUser.country} />
         </div>
       </motion.div>
+
     </motion.div>
   )}
 </AnimatePresence>

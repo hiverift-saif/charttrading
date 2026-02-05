@@ -104,6 +104,16 @@ const AdminDashboard = () => {
       case "trading_payouts":
       case "trading_live":
         return <AdminTradingControl darkMode={darkMode} activeSubTab={activeTab} />;
+        
+
+        // 📣 NEW: Broadcast / Notification Logs Case
+    case "reports_notifications":
+      return (
+        <AdminReports 
+          darkMode={darkMode} 
+          activeSubTab="reports_notifications" 
+        />
+      );
 
         // 🌳 NEW: Referral Tree Case (Milestone 4)
     case "referrals_tree":

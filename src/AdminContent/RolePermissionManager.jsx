@@ -275,7 +275,7 @@ const togglePermission = (permSlug) => {
       <XCircle size={20}/>
     </button>
   )}
-</td>z
+</td>
                       </tr>
                     )
                   })}
